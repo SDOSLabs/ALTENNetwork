@@ -1,4 +1,4 @@
-## [En desarrollo]
+## [1.1.0](https://github.com/SDOSLabs/ALTENNetwork/tree/1.1.0)
 
 - Added control available for tvOS
 

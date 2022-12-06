@@ -12,7 +12,7 @@ extension URLSession {
     ///   - request: `URLRequestConvertible` que se debe llamar para la descarga del contenido
     ///   - delegate: Delegado que recibe los eventos del ciclo de vida de la petición
     /// - Returns: Respuesta del servidor que contiene `Data` y `URLResponse`
-    @available(iOS 15.0, *)
+    @available(iOS 15, tvOS 15, *)
     public func requestData(for request: URLRequestConvertible, delegate: URLSessionTaskDelegate?) async throws -> NetworkDataResponse {
         return try await _requestData(for: request, delegate: delegate)
     }
@@ -30,7 +30,7 @@ extension URLSession {
     ///   - str: `String` que se debe llamar para la descarga del contenido
     ///   - delegate: Delegado que recibe los eventos del ciclo de vida de la petición
     /// - Returns: Respuesta del servidor que contiene `Data` y `URLResponse`
-    @available(iOS 15.0, *)
+    @available(iOS 15, tvOS 15, *)
     public func requestData(for str: String, delegate: URLSessionTaskDelegate?) async throws -> NetworkDataResponse {
         guard let url = URL(string: str) else { throw NetworkError.request(.invalidURL)}
         return try await requestData(for: url, delegate: delegate)
@@ -73,7 +73,7 @@ extension URLSession {
     ///   - request: `URLRequestConvertible` que se debe llamar para la descarga del contenido
     ///   - delegate: Delegado que recibe los eventos del ciclo de vida de la petición
     /// - Returns: Respuesta del servidor que contiene `URL` con la ruta del contenido descargado y `URLResponse`
-    @available(iOS 15.0, *)
+    @available(iOS 15, tvOS 15, *)
     public func requestDownload(for request: URLRequestConvertible, delegate: URLSessionTaskDelegate?) async throws -> NetworkDownloadResponse {
         return try await _requestDownload(for: request, delegate: delegate)
     }
@@ -91,7 +91,7 @@ extension URLSession {
     ///   - str: `String` que se debe llamar para la descarga del contenido
     ///   - delegate: Delegado que recibe los eventos del ciclo de vida de la petición
     /// - Returns: Respuesta del servidor que contiene `URL` con la ruta del contenido descargado y `URLResponse`
-    @available(iOS 15.0, *)
+    @available(iOS 15, tvOS 15, *)
     public func requestDownload(for str: String, delegate: URLSessionTaskDelegate?) async throws -> NetworkDownloadResponse {
         guard let url = URL(string: str) else { throw NetworkError.request(.invalidURL)}
         return try await requestDownload(for: url, delegate: delegate)
@@ -136,7 +136,7 @@ extension URLSession {
     ///   - bodyData: `Data` que debe enviar al servidor
     ///   - delegate: Delegado que recibe los eventos del ciclo de vida de la petición
     /// - Returns: Respuesta del servidor que contiene `Data` y `URLResponse`
-    @available(iOS 15.0, *)
+    @available(iOS 15, tvOS 15, *)
     public func requestUpload(for request: URLRequestConvertible, from bodyData: Data, delegate: URLSessionTaskDelegate?) async throws -> NetworkDataResponse {
         return try await _requestUpload(for: request, from: bodyData, delegate: delegate)
     }
@@ -156,7 +156,7 @@ extension URLSession {
     ///   - bodyData: `Data` que debe enviar al servidor
     ///   - delegate: Delegado que recibe los eventos del ciclo de vida de la petición
     /// - Returns: Respuesta del servidor que contiene `Data` y `URLResponse`
-    @available(iOS 15.0, *)
+    @available(iOS 15, tvOS 15, *)
     public func requestUpload(for str: String, from bodyData: Data, delegate: URLSessionTaskDelegate?) async throws -> NetworkDataResponse {
         guard let url = URL(string: str) else { throw NetworkError.request(.invalidURL)}
         return try await requestUpload(for: url, from: bodyData, delegate: delegate)
@@ -202,7 +202,7 @@ extension URLSession {
     ///   - fromFile: `URL` del fichero que se debe enviar al servidor
     ///   - delegate: Delegado que recibe los eventos del ciclo de vida de la petición
     /// - Returns: Respuesta del servidor que contiene `Data` y `URLResponse`
-    @available(iOS 15.0, *)
+    @available(iOS 15, tvOS 15, *)
     public func requestUpload(for request: URLRequestConvertible, fromFile fileURL: URL, delegate: URLSessionTaskDelegate?) async throws -> NetworkDataResponse {
         return try await _requestUpload(for: request, fromFile: fileURL, delegate: delegate)
     }
@@ -222,7 +222,7 @@ extension URLSession {
     ///   - fromFile: `URL` del fichero que se debe enviar al servidor
     ///   - delegate: Delegado que recibe los eventos del ciclo de vida de la petición
     /// - Returns: Respuesta del servidor que contiene `Data` y `URLResponse`
-    @available(iOS 15.0, *)
+    @available(iOS 15, tvOS 15, *)
     public func requestUpload(for str: String, fromFile fileURL: URL, delegate: URLSessionTaskDelegate?) async throws -> NetworkDataResponse {
         guard let url = URL(string: str) else { throw NetworkError.request(.invalidURL)}
         return try await requestUpload(for: url, fromFile: fileURL, delegate: delegate)
