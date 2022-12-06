@@ -46,7 +46,7 @@ extension URLSession {
     }
     
     private func _requestData(for request: URLRequestConvertible, delegate: URLSessionTaskDelegate?) async throws -> NetworkDataResponse {
-        if #available(iOS 15, *) {
+        if #available(iOS 15, tvOS 15, *) {
             return try await NetworkDataResponse(self.data(for: request.asURLRequest(), delegate: delegate))
         } else {
             return try await withCheckedThrowingContinuation { continuation in
@@ -107,7 +107,7 @@ extension URLSession {
     }
     
     private func _requestDownload(for request: URLRequestConvertible, delegate: URLSessionTaskDelegate?) async throws -> NetworkDownloadResponse {
-        if #available(iOS 15, *) {
+        if #available(iOS 15, tvOS 15, *) {
             return try await NetworkDownloadResponse(self.download(for: request.asURLRequest(), delegate: delegate))
         } else {
             return try await withCheckedThrowingContinuation { continuation in
@@ -174,7 +174,7 @@ extension URLSession {
     }
     
     private func _requestUpload(for request: URLRequestConvertible, from bodyData: Data, delegate: URLSessionTaskDelegate?) async throws -> NetworkDataResponse {
-        if #available(iOS 15, *) {
+        if #available(iOS 15, tvOS 15, *) {
             return try await NetworkDataResponse(self.upload(for: request.asURLRequest(), from: bodyData, delegate: delegate))
         } else {
             return try await withCheckedThrowingContinuation { continuation in
@@ -239,7 +239,7 @@ extension URLSession {
     }
     
     private func _requestUpload(for request: URLRequestConvertible, fromFile fileURL: URL, delegate: URLSessionTaskDelegate?) async throws -> NetworkDataResponse {
-        if #available(iOS 15, *) {
+        if #available(iOS 15, tvOS 15, *) {
             return try await NetworkDataResponse(self.upload(for: request.asURLRequest(), fromFile: fileURL, delegate: delegate))
         } else {
             return try await withCheckedThrowingContinuation { continuation in
