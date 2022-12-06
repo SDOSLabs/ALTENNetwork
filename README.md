@@ -13,7 +13,7 @@
 - Changelog: https://github.com/SDOSLabs/ALTENNetwork/blob/main/CHANGELOG.md
 
 ## Introducción
-`ALTENNetwork` es una librería creada con el fin de facilitar la creación y la llamada de peticiones con `URLSession`. Añade la capacidad de usar `Async/Await` a `URLSession` desde `iOS 13` y proporciona un el objeto `NetworkRequest` que facilita la creación de un `URLRequest` con los parámetros más comunes.
+`ALTENNetwork` es una librería creada con el fin de facilitar la creación y la llamada de peticiones con `URLSession`. Añade la capacidad de usar `Async/Await` a `URLSession` desde `iOS/tvOS 13` y proporciona un el objeto `NetworkRequest` que facilita la creación de un `URLRequest` con los parámetros más comunes.
 
 ## Instalación
 
@@ -28,7 +28,7 @@ https://github.com/SDOSLabs/ALTENNetwork.git
 
 ``` swift
 dependencies: [
-    .package(url: "https://github.com/SDOSLabs/ALTENNetwork.git", .upToNextMajor(from: "1.0.0"))
+    .package(url: "https://github.com/SDOSLabs/ALTENNetwork.git", .upToNextMajor(from: "1.1.0"))
 ]
 ```
 
@@ -44,7 +44,7 @@ Se debe añadir al target de la aplicación en la que queremos que esté disponi
 
 ## Cómo se usa
 
-La librería proporciona una extensión de `URLSession` que añade soporte para `Async/Await` desde `iOS 13` en adelante:
+La librería proporciona una extensión de `URLSession` que añade soporte para `Async/Await` desde `iOS/tvOS 13` en adelante:
 
 ``` swift 
 extension URLSession {
@@ -54,7 +54,7 @@ extension URLSession {
     ///   - request: `URLRequestConvertible` que se debe llamar para la descarga del contenido
     ///   - delegate: Delegado que recibe los eventos del ciclo de vida de la petición
     /// - Returns: Respuesta del servidor que contiene `Data` y `URLResponse`
-    @available(iOS 15.0, *)
+    @available(iOS 15, tvOS 15, *)
     public func requestData(for request: URLRequestConvertible, delegate: URLSessionTaskDelegate?) async throws -> NetworkDataResponse
 
     /// Descarga el contenido de un `URLRequestConvertible` y lo almacena en memoria. `URLRequestConvertible` es en esencia un `URLRequest`. De forma básica podemos usar un `URL` o un `URLRequest` para realizar la petición
@@ -68,7 +68,7 @@ extension URLSession {
     ///   - str: `String` que se debe llamar para la descarga del contenido
     ///   - delegate: Delegado que recibe los eventos del ciclo de vida de la petición
     /// - Returns: Respuesta del servidor que contiene `Data` y `URLResponse`
-    @available(iOS 15.0, *)
+    @available(iOS 15, tvOS 15, *)
     public func requestData(for str: String, delegate: URLSessionTaskDelegate?) async throws -> NetworkDataResponse
 
     /// Descarga el contenido de una `URL` dado en formato `String`
@@ -85,7 +85,7 @@ extension URLSession {
     ///   - request: `URLRequestConvertible` que se debe llamar para la descarga del contenido
     ///   - delegate: Delegado que recibe los eventos del ciclo de vida de la petición
     /// - Returns: Respuesta del servidor que contiene `URL` con la ruta del contenido descargado y `URLResponse`
-    @available(iOS 15.0, *)
+    @available(iOS 15, tvOS 15, *)
     public func requestDownload(for request: URLRequestConvertible, delegate: URLSessionTaskDelegate?) async throws -> NetworkDownloadResponse
 
     /// Descarga el contenido de un `URLRequestConvertible` y lo almacena en un fichero en disco. `URLRequestConvertible` es en esencia un `URLRequest`. De forma básica podemos usar un `URL` o un `URLRequest` para realizar la petición
@@ -99,7 +99,7 @@ extension URLSession {
     ///   - str: `String` que se debe llamar para la descarga del contenido
     ///   - delegate: Delegado que recibe los eventos del ciclo de vida de la petición
     /// - Returns: Respuesta del servidor que contiene `URL` con la ruta del contenido descargado y `URLResponse`
-    @available(iOS 15.0, *)
+    @available(iOS 15, tvOS 15, *)
     public func requestDownload(for str: String, delegate: URLSessionTaskDelegate?) async throws -> NetworkDownloadResponse
 
     /// Descarga el contenido de una `URL` dado en formato `String`
@@ -116,7 +116,7 @@ extension URLSession {
     ///   - bodyData: `Data` que debe enviar al servidor
     ///   - delegate: Delegado que recibe los eventos del ciclo de vida de la petición
     /// - Returns: Respuesta del servidor que contiene `Data` y `URLResponse`
-    @available(iOS 15.0, *)
+    @available(iOS 15, tvOS 15, *)
     public func requestUpload(for request: URLRequestConvertible, from bodyData: Data, delegate: URLSessionTaskDelegate?) async throws -> NetworkDataResponse
 
     /// Realiza la subida de contenido a un `URLRequestConvertible`. `URLRequestConvertible` es en esencia un `URLRequest`. De forma básica podemos usar un `URL` o un `URLRequest` para realizar la petición
@@ -132,7 +132,7 @@ extension URLSession {
     ///   - bodyData: `Data` que debe enviar al servidor
     ///   - delegate: Delegado que recibe los eventos del ciclo de vida de la petición
     /// - Returns: Respuesta del servidor que contiene `Data` y `URLResponse`
-    @available(iOS 15.0, *)
+    @available(iOS 15, tvOS 15, *)
     public func requestUpload(for str: String, from bodyData: Data, delegate: URLSessionTaskDelegate?) async throws -> NetworkDataResponse
 
     /// Realiza la subida de contenido a una `URL` dado en formato `String`
@@ -152,7 +152,7 @@ extension URLSession {
     ///   - fromFile: `URL` del fichero que se debe enviar al servidor
     ///   - delegate: Delegado que recibe los eventos del ciclo de vida de la petición
     /// - Returns: Respuesta del servidor que contiene `Data` y `URLResponse`
-    @available(iOS 15.0, *)
+    @available(iOS 15, tvOS 15, *)
     public func requestUpload(for request: URLRequestConvertible, fromFile fileURL: URL, delegate: URLSessionTaskDelegate?) async throws -> NetworkDataResponse
 
     /// Realiza la subida de contenido a un `URLRequestConvertible`. `URLRequestConvertible` es en esencia un `URLRequest`. De forma básica podemos usar un `URL` o un `URLRequest` para realizar la petición
@@ -168,7 +168,7 @@ extension URLSession {
     ///   - fromFile: `URL` del fichero que se debe enviar al servidor
     ///   - delegate: Delegado que recibe los eventos del ciclo de vida de la petición
     /// - Returns: Respuesta del servidor que contiene `Data` y `URLResponse`
-    @available(iOS 15.0, *)
+    @available(iOS 15, tvOS 15, *)
     public func requestUpload(for str: String, fromFile fileURL: URL, delegate: URLSessionTaskDelegate?) async throws -> NetworkDataResponse
 
     /// Realiza la subida de contenido a una `URL` dado en formato `String`
