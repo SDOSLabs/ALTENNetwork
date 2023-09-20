@@ -37,14 +37,16 @@ public struct NetworkQuery {
     public let key: String
     /// Valor del parámetro
     public let value: String
+    /// Indica si debe codificar el valor del símbolo `+` por `%2B`
+    internal let forceEncodingPlusSymbol: Bool
     
     /// Crea un nuevo `NetworkRequest`
     /// - Parameters:
     ///   - key: Clave del parámetro
     ///   - value: Valor del parámetro
-    ///   - allowEncodingValue: Indica si debe codificar el valor para la eliminación de caracteres extraños con el uso de la función `value.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)`
+    ///   - forceEncodingPlusSymbol: Indica si debe codificar el valor del símbolo `+` por `%2B`
     /// - Returns: instancia de `NetworkRequest`
-    public static func query(key: String, value: String, allowEncodingValue: Bool = true) -> Self { NetworkQuery(key: key, value: value) }
+    public static func query(key: String, value: String, forceEncodingPlusSymbol: Bool = false) -> Self { NetworkQuery(key: key, value: value, forceEncodingPlusSymbol: forceEncodingPlusSymbol) }
     
     /// Transforma el objeto al tipo nativo `URLQueryItem`
     /// - Returns: instancia de `URLQueryItem`

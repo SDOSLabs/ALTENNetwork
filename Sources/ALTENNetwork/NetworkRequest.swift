@@ -24,7 +24,15 @@ open class NetworkRequest {
         
         guard var components = URLComponents(string: url.absoluteString) else { throw NetworkError.request(.invalidURL) }
         if let query = query {
-            components.queryItems = (components.queryItems ?? []) + query.map { $0.asURLQueryItem() }
+            components.queryItems = (components.queryItems ?? []) + query.compactMap { $0.asURLQueryItem() }
+            components.percentEncodedQueryItems = components.percentEncodedQueryItems?.compactMap { item in
+                if let query = query.first(where: { $0.key == item.name }), query.forceEncodingPlusSymbol {
+                    return URLQueryItem(name: item.name, value: item.value?.replacingOccurrences(of: "+", with: "%2B"))
+                } else {
+                    return item
+                }
+            }
+            
         }
         guard let url = components.url else { throw NetworkError.request(.invalidURL) }
         
