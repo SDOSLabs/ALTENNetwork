@@ -210,7 +210,9 @@ func getFilms(searchText: String, page: Int) async throws -> Data {
 }
 ```
 
-La clase `NetworkRequest` tiene varios inicializadores y permiten las configuraciones más comunes que suelen tener un `URLRequest`. Internamente la clase `NetworkRequest` implementa el protocolo `URLRequestConvertible`, que es el requisito para poder transformarlo en un `URLRequest`:
+La clase `NetworkRequest` tiene varios inicializadores y permiten las configuraciones más comunes que suelen tener un `URLRequest`. Internamente la clase `NetworkRequest` implementa el protocolo `URLRequestConvertible`, que es el requisito para poder transformarlo en un `URLRequest`.
+
+Los parámetros de la query se pueden pasar como un tipo `NetworkQuery`. El valor de estos parámetros no debe estar codificado para el envio en la url. La propia librería se encarga de codificarlo
 
 Más ejemplos:
 

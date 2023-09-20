@@ -37,8 +37,6 @@ public struct NetworkQuery {
     public let key: String
     /// Valor del parámetro
     public let value: String
-    /// Indica si debe codificar el valor para la eliminación de caracteres extraños con el uso de la función `value.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)`
-    private let allowEncodingValue: Bool
     
     /// Crea un nuevo `NetworkRequest`
     /// - Parameters:
@@ -46,12 +44,12 @@ public struct NetworkQuery {
     ///   - value: Valor del parámetro
     ///   - allowEncodingValue: Indica si debe codificar el valor para la eliminación de caracteres extraños con el uso de la función `value.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed)`
     /// - Returns: instancia de `NetworkRequest`
-    public static func query(key: String, value: String, allowEncodingValue: Bool = true) -> Self { NetworkQuery(key: key, value: value, allowEncodingValue: allowEncodingValue) }
+    public static func query(key: String, value: String, allowEncodingValue: Bool = true) -> Self { NetworkQuery(key: key, value: value) }
     
     /// Transforma el objeto al tipo nativo `URLQueryItem`
     /// - Returns: instancia de `URLQueryItem`
     public func asURLQueryItem() -> URLQueryItem {
-        URLQueryItem(name: key, value: (allowEncodingValue) ? value.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) : value)
+        URLQueryItem(name: key, value: value)
     }
 }
 
