@@ -1,3 +1,7 @@
+## [2.2.0](https://github.com/SDOSLabs/ALTENNetwork/tree/2.2.0)
+
+- Add parameter `originalRequest` to `NetworkDataResponse` and `NetworkDownloadResponse`
+ 
 ## [2.1.0](https://github.com/SDOSLabs/ALTENNetwork/tree/2.1.0)
 
 - Add `forceEncodingPlusSymbol` for `NetworkQuery`. Allows to encoding value `+` to `%2B`
