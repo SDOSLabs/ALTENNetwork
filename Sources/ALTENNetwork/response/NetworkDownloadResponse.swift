@@ -12,12 +12,15 @@ public struct NetworkDownloadResponse {
     public let url: URL
     /// Response de la petición
     public let response: URLResponse
+    /// Request con la que se hizo la petición
+    public let originalRequest: URLRequest
     
     /// Crea una instancia de `NetworkDownloadResponse`
     /// - Parameter dataResponse: Tupla con los valores devueltos por la petitición
-    public init(_ dataResponse: (URL, URLResponse)) {
+    public init(dataResponse: (URL, URLResponse), originalRequest: URLRequest) {
         url = dataResponse.0
         response = dataResponse.1
+        self.originalRequest = originalRequest
     }
 }
 

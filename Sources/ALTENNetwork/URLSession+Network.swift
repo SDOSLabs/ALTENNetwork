@@ -46,15 +46,16 @@ extension URLSession {
     }
     
     private func _requestData(for request: URLRequestConvertible, delegate: URLSessionTaskDelegate?) async throws -> NetworkDataResponse {
+        let urlRequest = request.asURLRequest()
         if #available(iOS 15, tvOS 15, *) {
-            return try await NetworkDataResponse(self.data(for: request.asURLRequest(), delegate: delegate))
+            return try await NetworkDataResponse(dataResponse: self.data(for: urlRequest, delegate: delegate), originalRequest: urlRequest)
         } else {
             return try await withCheckedThrowingContinuation { continuation in
-                let dataTask = self.dataTask(with: request.asURLRequest()) { data, response, error in
+                let dataTask = self.dataTask(with: urlRequest) { data, response, error in
                     if let error = error {
                         continuation.resume(throwing: error)
                     } else if let data = data, let response = response {
-                        continuation.resume(returning: NetworkDataResponse((data, response)))
+                        continuation.resume(returning: NetworkDataResponse(dataResponse: (data, response), originalRequest: urlRequest))
                     } else {
                         continuation.resume(throwing: NetworkError.unknown)
                     }
@@ -107,15 +108,16 @@ extension URLSession {
     }
     
     private func _requestDownload(for request: URLRequestConvertible, delegate: URLSessionTaskDelegate?) async throws -> NetworkDownloadResponse {
+        let urlRequest = request.asURLRequest()
         if #available(iOS 15, tvOS 15, *) {
-            return try await NetworkDownloadResponse(self.download(for: request.asURLRequest(), delegate: delegate))
+            return try await NetworkDownloadResponse(dataResponse: self.download(for: urlRequest, delegate: delegate), originalRequest: urlRequest)
         } else {
             return try await withCheckedThrowingContinuation { continuation in
-                let dataTask = self.downloadTask(with: request.asURLRequest()) { url, response, error in
+                let dataTask = self.downloadTask(with: urlRequest) { url, response, error in
                     if let error = error {
                         continuation.resume(throwing: error)
                     } else if let url = url, let response = response {
-                        continuation.resume(returning: NetworkDownloadResponse((url, response)))
+                        continuation.resume(returning: NetworkDownloadResponse(dataResponse: (url, response), originalRequest: urlRequest))
                     } else {
                         continuation.resume(throwing: NetworkError.unknown)
                     }
@@ -174,15 +176,16 @@ extension URLSession {
     }
     
     private func _requestUpload(for request: URLRequestConvertible, from bodyData: Data, delegate: URLSessionTaskDelegate?) async throws -> NetworkDataResponse {
+        let urlRequest = request.asURLRequest()
         if #available(iOS 15, tvOS 15, *) {
-            return try await NetworkDataResponse(self.upload(for: request.asURLRequest(), from: bodyData, delegate: delegate))
+            return try await NetworkDataResponse(dataResponse: self.upload(for: urlRequest, from: bodyData, delegate: delegate), originalRequest: urlRequest)
         } else {
             return try await withCheckedThrowingContinuation { continuation in
-                let dataTask = self.uploadTask(with: request.asURLRequest(), from: bodyData) { data, response, error in
+                let dataTask = self.uploadTask(with: urlRequest, from: bodyData) { data, response, error in
                     if let error = error {
                         continuation.resume(throwing: error)
                     } else if let data = data, let response = response {
-                        continuation.resume(returning: NetworkDataResponse((data, response)))
+                        continuation.resume(returning: NetworkDataResponse(dataResponse: (data, response), originalRequest: urlRequest))
                     } else {
                         continuation.resume(throwing: NetworkError.unknown)
                     }
@@ -239,15 +242,16 @@ extension URLSession {
     }
     
     private func _requestUpload(for request: URLRequestConvertible, fromFile fileURL: URL, delegate: URLSessionTaskDelegate?) async throws -> NetworkDataResponse {
+        let urlRequest = request.asURLRequest()
         if #available(iOS 15, tvOS 15, *) {
-            return try await NetworkDataResponse(self.upload(for: request.asURLRequest(), fromFile: fileURL, delegate: delegate))
+            return try await NetworkDataResponse(dataResponse: self.upload(for: urlRequest, fromFile: fileURL, delegate: delegate), originalRequest: urlRequest)
         } else {
             return try await withCheckedThrowingContinuation { continuation in
-                let dataTask = self.uploadTask(with: request.asURLRequest(), fromFile: fileURL) { data, response, error in
+                let dataTask = self.uploadTask(with: urlRequest, fromFile: fileURL) { data, response, error in
                     if let error = error {
                         continuation.resume(throwing: error)
                     } else if let data = data, let response = response {
-                        continuation.resume(returning: NetworkDataResponse((data, response)))
+                        continuation.resume(returning: NetworkDataResponse(dataResponse: (data, response), originalRequest: urlRequest))
                     } else {
                         continuation.resume(throwing: NetworkError.unknown)
                     }
