@@ -28,7 +28,7 @@ https://github.com/SDOSLabs/ALTENNetwork.git
 
 ``` swift
 dependencies: [
-    .package(url: "https://github.com/SDOSLabs/ALTENNetwork.git", .upToNextMajor(from: "1.1.0"))
+    .package(url: "https://github.com/SDOSLabs/ALTENNetwork.git", .upToNextMajor(from: "3.0.0"))
 ]
 ```
 
