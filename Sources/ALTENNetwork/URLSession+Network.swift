@@ -7,8 +7,6 @@
 
 import Foundation
 
-extension URLSession: NetworkSession { }
-
 extension URLRequest {
     public var curl: String {
         var result = "curl -k "
