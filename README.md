@@ -28,7 +28,7 @@ https://github.com/SDOSLabs/ALTENNetwork.git
 
 ``` swift
 dependencies: [
-    .package(url: "https://github.com/SDOSLabs/ALTENNetwork.git", .upToNextMajor(from: "1.1.0"))
+    .package(url: "https://github.com/SDOSLabs/ALTENNetwork.git", .upToNextMajor(from: "3.0.0"))
 ]
 ```
 
@@ -44,88 +44,108 @@ Se debe añadir al target de la aplicación en la que queremos que esté disponi
 
 ## Cómo se usa
 
-La librería proporciona una extensión de `URLSession` que añade soporte para `Async/Await` desde `iOS/tvOS 13` en adelante:
+La librería proporciona el protocolo `NetworkSession` que añade soporte para `Async/Await` desde `iOS/tvOS 13` en adelante. 
+El único requisito para su uso es hacer que `URLSession` implemente el protocolo `NetworkSession`.
 
 ``` swift 
-extension URLSession {
+extension URLSession: NetworkSession { }
+``` 
 
-    /// Descarga el contenido de un `URLRequestConvertible` y lo almacena en memoria. `URLRequestConvertible` es en esencia un `URLRequest`. De forma básica podemos usar un `URL` o un `URLRequest` para realizar la petición
-    /// - Parameters:
-    ///   - request: `URLRequestConvertible` que se debe llamar para la descarga del contenido
-    ///   - delegate: Delegado que recibe los eventos del ciclo de vida de la petición
-    /// - Returns: Respuesta del servidor que contiene `Data` y `URLResponse`
-    @available(iOS 15, tvOS 15, *)
-    public func requestData(for request: URLRequestConvertible, delegate: URLSessionTaskDelegate?) async throws -> NetworkDataResponse
+> Truco: La función `requestStart(originalRequest: URLRequest)` de `NetworkSession` existe por motivos de depuración. Al imprimir por consola datos de la request original podemos exponer datos sensibles, por lo que se recomienda usar un logger o una condición para mostrar esta información sólo en debug.
 
-    /// Descarga el contenido de un `URLRequestConvertible` y lo almacena en memoria. `URLRequestConvertible` es en esencia un `URLRequest`. De forma básica podemos usar un `URL` o un `URLRequest` para realizar la petición
-    /// - Parameters:
-    ///   - request: `URLRequestConvertible` que se debe llamar para la descarga del contenido
-    /// - Returns: Respuesta del servidor que contiene `Data` y `URLResponse`
-    public func requestData(for request: URLRequestConvertible) async throws -> NetworkDataResponse
-
-    /// Descarga el contenido de una `URL` dado en formato `String`
-    /// - Parameters:
-    ///   - str: `String` que se debe llamar para la descarga del contenido
-    ///   - delegate: Delegado que recibe los eventos del ciclo de vida de la petición
-    /// - Returns: Respuesta del servidor que contiene `Data` y `URLResponse`
-    @available(iOS 15, tvOS 15, *)
-    public func requestData(for str: String, delegate: URLSessionTaskDelegate?) async throws -> NetworkDataResponse
-
-    /// Descarga el contenido de una `URL` dado en formato `String`
-    /// - Parameters:
-    ///   - str: `String` que se debe llamar para la descarga del contenido
-    /// - Returns: Respuesta del servidor que contiene `Data` y `URLResponse`
-    public func requestData(for str: String) async throws -> NetworkDataResponse
+``` swift 
+extension URLSession: NetworkSession {
+    public func requestStart(originalRequest: URLRequest) {
+        #if DEBUG
+        print(originalRequest.curl)
+        #endif
+    }
 }
+``` 
 
-extension URLSession {
+La definición del protocolo `NetworkSession` es la siguiente:
 
+
+``` swift 
+/// Contiene todos los métodos disponibles para realizar llamadas con async/await
+public protocol NetworkSession: URLSession {
+    
+    /// Este método se llamará antes de que comience cualquier request. Tiene como parámetro de entrada la URLRequest a la que se está llamando y su único objetivo es que sirva de caracter informativo
+    /// - Parameter originalRequest: request original a la que se llamará
+    func requestStart(originalRequest: URLRequest)
+    
+    // Descarga el contenido de un `URLRequestConvertible` y lo almacena en memoria. `URLRequestConvertible` es en esencia un `URLRequest`. De forma básica podemos usar un `URL` o un `URLRequest` para realizar la petición
+    /// - Parameters:
+    ///   - request: `URLRequestConvertible` que se debe llamar para la descarga del contenido
+    ///   - delegate: Delegado que recibe los eventos del ciclo de vida de la petición
+    /// - Returns: Respuesta del servidor que contiene `Data` y `URLResponse`
+    @available(iOS 15, tvOS 15, *)
+    func requestData(for request: URLRequestConvertible, delegate: URLSessionTaskDelegate?) async throws -> NetworkDataResponse
+    
+    /// Descarga el contenido de un `URLRequestConvertible` y lo almacena en memoria. `URLRequestConvertible` es en esencia un `URLRequest`. De forma básica podemos usar un `URL` o un `URLRequest` para realizar la petición
+    /// - Parameters:
+    ///   - request: `URLRequestConvertible` que se debe llamar para la descarga del contenido
+    /// - Returns: Respuesta del servidor que contiene `Data` y `URLResponse`
+    func requestData(for request: URLRequestConvertible) async throws -> NetworkDataResponse
+    
+    /// Descarga el contenido de una `URL` dado en formato `String`
+    /// - Parameters:
+    ///   - str: `String` que se debe llamar para la descarga del contenido
+    ///   - delegate: Delegado que recibe los eventos del ciclo de vida de la petición
+    /// - Returns: Respuesta del servidor que contiene `Data` y `URLResponse`
+    @available(iOS 15, tvOS 15, *)
+    func requestData(for str: String, delegate: URLSessionTaskDelegate?) async throws -> NetworkDataResponse
+    
+    /// Descarga el contenido de una `URL` dado en formato `String`
+    /// - Parameters:
+    ///   - str: `String` que se debe llamar para la descarga del contenido
+    /// - Returns: Respuesta del servidor que contiene `Data` y `URLResponse`
+    func requestData(for str: String) async throws -> NetworkDataResponse
+    
     /// Descarga el contenido de un `URLRequestConvertible` y lo almacena en un fichero en disco. `URLRequestConvertible` es en esencia un `URLRequest`. De forma básica podemos usar un `URL` o un `URLRequest` para realizar la petición
     /// - Parameters:
     ///   - request: `URLRequestConvertible` que se debe llamar para la descarga del contenido
     ///   - delegate: Delegado que recibe los eventos del ciclo de vida de la petición
     /// - Returns: Respuesta del servidor que contiene `URL` con la ruta del contenido descargado y `URLResponse`
     @available(iOS 15, tvOS 15, *)
-    public func requestDownload(for request: URLRequestConvertible, delegate: URLSessionTaskDelegate?) async throws -> NetworkDownloadResponse
-
+    func requestDownload(for request: URLRequestConvertible, delegate: URLSessionTaskDelegate?) async throws -> NetworkDownloadResponse
+    
     /// Descarga el contenido de un `URLRequestConvertible` y lo almacena en un fichero en disco. `URLRequestConvertible` es en esencia un `URLRequest`. De forma básica podemos usar un `URL` o un `URLRequest` para realizar la petición
     /// - Parameters:
     ///   - request: `URLRequestConvertible` que se debe llamar para la descarga del contenido
     /// - Returns: Respuesta del servidor que contiene `URL` con la ruta del contenido descargado y `URLResponse`
-    public func requestDownload(for request: URLRequestConvertible) async throws -> NetworkDownloadResponse
-
+    func requestDownload(for request: URLRequestConvertible) async throws -> NetworkDownloadResponse
+    
     /// Descarga el contenido de una `URL` dado en formato `String`
     /// - Parameters:
     ///   - str: `String` que se debe llamar para la descarga del contenido
     ///   - delegate: Delegado que recibe los eventos del ciclo de vida de la petición
     /// - Returns: Respuesta del servidor que contiene `URL` con la ruta del contenido descargado y `URLResponse`
     @available(iOS 15, tvOS 15, *)
-    public func requestDownload(for str: String, delegate: URLSessionTaskDelegate?) async throws -> NetworkDownloadResponse
-
+    func requestDownload(for str: String, delegate: URLSessionTaskDelegate?) async throws -> NetworkDownloadResponse
+    
     /// Descarga el contenido de una `URL` dado en formato `String`
     /// - Parameters:
     ///   - str: `String` que se debe llamar para la descarga del contenido
     /// - Returns: Respuesta del servidor que contiene `URL` con la ruta del contenido descargado y `URLResponse`
-    public func requestDownload(for str: String) async throws -> NetworkDownloadResponse
-}
-
-extension URLSession {
-
+    func requestDownload(for str: String) async throws -> NetworkDownloadResponse
+    
+    // Realiza la subida de contenido a un `URLRequestConvertible`. `URLRequestConvertible` es en esencia un `URLRequest`. De forma básica podemos usar un `URL` o un `URLRequest` para realizar la petición
     /// - Parameters:
     ///   - request: `URLRequestConvertible` que se debe llamar para la subida del contenido
     ///   - bodyData: `Data` que debe enviar al servidor
     ///   - delegate: Delegado que recibe los eventos del ciclo de vida de la petición
     /// - Returns: Respuesta del servidor que contiene `Data` y `URLResponse`
     @available(iOS 15, tvOS 15, *)
-    public func requestUpload(for request: URLRequestConvertible, from bodyData: Data, delegate: URLSessionTaskDelegate?) async throws -> NetworkDataResponse
-
+    func requestUpload(for request: URLRequestConvertible, from bodyData: Data, delegate: URLSessionTaskDelegate?) async throws -> NetworkDataResponse
+    
     /// Realiza la subida de contenido a un `URLRequestConvertible`. `URLRequestConvertible` es en esencia un `URLRequest`. De forma básica podemos usar un `URL` o un `URLRequest` para realizar la petición
     /// - Parameters:
     ///   - request: `URLRequestConvertible` que se debe llamar para la subida del contenido
     ///   - bodyData: `Data` que debe enviar al servidor
     /// - Returns: Respuesta del servidor que contiene `Data` y `URLResponse`
-    public func requestUpload(for request: URLRequestConvertible, from bodyData: Data) async throws -> NetworkDataResponse
-
+    func requestUpload(for request: URLRequestConvertible, from bodyData: Data) async throws -> NetworkDataResponse
+    
     /// Realiza la subida de contenido a una `URL` dado en formato `String`
     /// - Parameters:
     ///   - str: `String` que se debe llamar para la descarga del contenido
@@ -133,19 +153,16 @@ extension URLSession {
     ///   - delegate: Delegado que recibe los eventos del ciclo de vida de la petición
     /// - Returns: Respuesta del servidor que contiene `Data` y `URLResponse`
     @available(iOS 15, tvOS 15, *)
-    public func requestUpload(for str: String, from bodyData: Data, delegate: URLSessionTaskDelegate?) async throws -> NetworkDataResponse
-
+    func requestUpload(for str: String, from bodyData: Data, delegate: URLSessionTaskDelegate?) async throws -> NetworkDataResponse
+    
     /// Realiza la subida de contenido a una `URL` dado en formato `String`
     /// - Parameters:
     ///   - str: `String` que se debe llamar para la descarga del contenido
     ///   - bodyData: `Data` que debe enviar al servidor
     ///   - delegate: Delegado que recibe los eventos del ciclo de vida de la petición
     /// - Returns: Respuesta del servidor que contiene `Data` y `URLResponse`
-    public func requestUpload(for str: String, from bodyData: Data) async throws -> NetworkDataResponse
-}
-
-extension URLSession {
-
+    func requestUpload(for str: String, from bodyData: Data) async throws -> NetworkDataResponse
+    
     /// Realiza la subida de contenido a un `URLRequestConvertible`. `URLRequestConvertible` es en esencia un `URLRequest`. De forma básica podemos usar un `URL` o un `URLRequest` para realizar la petición
     /// - Parameters:
     ///   - request: `URLRequestConvertible` que se debe llamar para la subida del contenido
@@ -153,15 +170,15 @@ extension URLSession {
     ///   - delegate: Delegado que recibe los eventos del ciclo de vida de la petición
     /// - Returns: Respuesta del servidor que contiene `Data` y `URLResponse`
     @available(iOS 15, tvOS 15, *)
-    public func requestUpload(for request: URLRequestConvertible, fromFile fileURL: URL, delegate: URLSessionTaskDelegate?) async throws -> NetworkDataResponse
-
+    func requestUpload(for request: URLRequestConvertible, fromFile fileURL: URL, delegate: URLSessionTaskDelegate?) async throws -> NetworkDataResponse
+    
     /// Realiza la subida de contenido a un `URLRequestConvertible`. `URLRequestConvertible` es en esencia un `URLRequest`. De forma básica podemos usar un `URL` o un `URLRequest` para realizar la petición
     /// - Parameters:
     ///   - request: `URLRequestConvertible` que se debe llamar para la subida del contenido
     ///   - fromFile: `URL` del fichero que se debe enviar al servidor
     /// - Returns: Respuesta del servidor que contiene `Data` y `URLResponse`
-    public func requestUpload(for request: URLRequestConvertible, fromFile fileURL: URL) async throws -> NetworkDataResponse
-
+    func requestUpload(for request: URLRequestConvertible, fromFile fileURL: URL) async throws -> NetworkDataResponse
+    
     /// Realiza la subida de contenido a una `URL` dado en formato `String`
     /// - Parameters:
     ///   - str: `String` que se debe llamar para la descarga del contenido
@@ -169,14 +186,14 @@ extension URLSession {
     ///   - delegate: Delegado que recibe los eventos del ciclo de vida de la petición
     /// - Returns: Respuesta del servidor que contiene `Data` y `URLResponse`
     @available(iOS 15, tvOS 15, *)
-    public func requestUpload(for str: String, fromFile fileURL: URL, delegate: URLSessionTaskDelegate?) async throws -> NetworkDataResponse
-
+    func requestUpload(for str: String, fromFile fileURL: URL, delegate: URLSessionTaskDelegate?) async throws -> NetworkDataResponse
+    
     /// Realiza la subida de contenido a una `URL` dado en formato `String`
     /// - Parameters:
     ///   - str: `String` que se debe llamar para la descarga del contenido
     ///   - fromFile: `URL` del fichero que se debe enviar al servidor
     /// - Returns: Respuesta del servidor que contiene `Data` y `URLResponse`
-    public func requestUpload(for str: String, fromFile fileURL: URL) async throws -> NetworkDataResponse
+    func requestUpload(for str: String, fromFile fileURL: URL) async throws -> NetworkDataResponse
 }
 ```
 
@@ -253,6 +270,46 @@ func getFilms(searchText: String, page: Int) async throws -> FilmsSearchDTO<[Fil
     
     let result = try await session.requestData(for: networkRequest).validate().jsonDecode(FilmsSearchDTO<[FilmDTO]>.self)
     return result
+}
+```
+
+También se pueden crear extensiones de `NetworkDataResponse` y `NetworkDownloadResponse` para crear funciones de utilidades como por ejemplo para mostrar por consola la respuesta recibida o validar la petición de forma diferente:
+
+``` swift
+extension NetworkDataResponse {
+    public func logResponse() -> Self {
+        if let text = String(data: data, encoding: .utf8) {
+            print("[NetworkDataResponse] String: \(text)")
+        } else {
+            print("[NetworkDataResponse] Data recieved is not a String: \(data.count) bytes")
+        }
+        return self
+    }
+}
+
+extension NetworkDataResponse {
+    public func validateApi(correctRange range: HTTPCodes = .success) throws -> Self {
+        guard let response = response as? HTTPURLResponse else {
+            throw NetworkError.responseData(.invalidResponse(self))
+        }
+        let range: HTTPCodes = .success
+        guard range ~= response.statusCode else {
+            if 400..<500 ~= response.statusCode {
+                if response.statusCode == 401 {
+                    throw ErrorApp.networkUnauthorized
+                } else {
+                    if let object = try? JSONDecoder().decode(AppErrorDTO.self, from: data) {
+                        throw <#T##Your Error#>
+                    } else {
+                        throw NetworkError.responseData(.invalidStatusCode(self, response.statusCode))
+                    }
+                }
+            } else {
+                throw NetworkError.responseData(.invalidStatusCode(self, response.statusCode))
+            }
+        }
+        return try validate(correctRange: range)
+    }
 }
 ```
 
