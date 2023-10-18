@@ -1,6 +1,5 @@
 //
-//  URLSession+Network.swift
-//  
+//  URLRequest+Network.swift
 //
 //  Copyright © 2023 ALTEN. All rights reserved.
 //
