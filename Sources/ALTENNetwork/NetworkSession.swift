@@ -9,7 +9,8 @@ import Foundation
 /// Contiene todos los métodos disponibles para realizar llamadas con async/await
 public protocol NetworkSession: URLSession {
     
-    /// Este método se llamará antes de que comience cualquier request. Tiene como parámetro de entrada la URLRequest a la que se está llamando y su único objetivo es que sirva de caracter informativo
+    /// Este método se llamará antes de que comience cualquier request. Tiene como parámetro de entrada la URLRequest a la que se está llamando y su único objetivo es que sirva de caracter informativo.
+    /// La implementación por defecto imprime el curl de la request sólo en entornos de debug a través de la condificón `#if DEBUG`
     /// - Parameter urlRequest: request original a la que se llamará
     func requestStart(originalRequest: URLRequest)
     
@@ -137,7 +138,9 @@ public protocol NetworkSession: URLSession {
 
 extension NetworkSession {
     public func requestStart(originalRequest: URLRequest) {
-        print("[NetworkSession] - Start Request: \(originalRequest.url?.absoluteString ?? "No url")")
+#if DEBUG
+        print("[NetworkSession] - Start Request: \(originalRequest.curl)")
+#endif
     }
 }
 

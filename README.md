@@ -48,15 +48,20 @@ La librería proporciona el protocolo `NetworkSession` que añade soporte para `
 El único requisito para su uso es hacer que `URLSession` implemente el protocolo `NetworkSession`.
 
 ``` swift 
+extension URLSession: NetworkSession { }
+``` 
+
+> Truco: La función `requestStart(originalRequest: URLRequest)` de `NetworkSession` existe por motivos de depuración. Al imprimir por consola datos de la request original podemos exponer datos sensibles, por lo que se recomienda usar un logger o una condición para mostrar esta información sólo en debug.
+
+``` swift 
 extension URLSession: NetworkSession {
     public func requestStart(originalRequest: URLRequest) {
+        #if DEBUG
         print(originalRequest.curl)
+        #endif
     }
 }
-
 ``` 
-> Importante: La función `requestStart(originalRequest: URLRequest)` existe por motivos de depuración. Al imprimir por consola el curl de la request podemos exponer datos sensibles, por lo que se recomienda usar un logger para mostrar esta información sólo en debug.
-
 
 La definición del protocolo `NetworkSession` es la siguiente:
 
