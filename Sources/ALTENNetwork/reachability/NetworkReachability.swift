@@ -146,7 +146,7 @@ extension NetworkReachability {
             continuation.onTermination = { @Sendable _ in
 //                self?.stopNotifier()
             }
-            reachabilityHandler = { reachability in
+            self?.reachabilityHandler = { reachability in
                 if let reachability = reachability {
                     continuation.yield(reachability)
                 } else {
