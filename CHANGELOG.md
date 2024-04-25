@@ -1,3 +1,6 @@
+## [3.0.1](https://github.com/SDOSLabs/ALTENNetwork/tree/3.0.1)
+- Incluido fichero `PrivacyInfo.xcprivacy` requerido por Apple: https://developer.apple.com/documentation/bundleresources/privacy_manifest_files/describing_use_of_required_reason_api
+
 ## [3.0.0](https://github.com/SDOSLabs/ALTENNetwork/tree/3.0.0)
 
 - Remove `URLSession` extension. Create protocol `NetworkSession` with all the implementation. You need conformace protocol `NetworkSession` for `URLSession` in your app
