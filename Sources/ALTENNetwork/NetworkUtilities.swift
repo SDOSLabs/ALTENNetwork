@@ -75,3 +75,11 @@ public struct NetworkHttpMethod: RawRepresentable {
         self.rawValue = rawValue
     }
 }
+
+internal func jsonDecode<T: Decodable>(_ type: T.Type, data: Data, decoder: JSONDecoder = JSONDecoder()) throws -> T {
+    do {
+        return try decoder.decode(T.self, from: data)
+    } catch {
+        throw NetworkError.responseData(.decodeError(error))
+    }
+}

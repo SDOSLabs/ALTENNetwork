@@ -51,11 +51,26 @@ El único requisito para su uso es hacer que `URLSession` implemente el protocol
 extension URLSession: NetworkSession { }
 ``` 
 
+También se puede crear una subclase de `URLSession` que implemente el protocolo `NetworkSession` y añadir la lógica que se necesite. Por ejemplo, añadir un log de la request original.
+
+``` swift
+final class MySession: URLSession, NetworkSession {
+    public func requestStart(originalRequest: URLRequest) {
+        #if DEBUG
+        print(originalRequest.curl)
+        #endif
+    }
+}
+```
+
+En este caso, la clase `MySession` se usará para realizar las llamadas a la API que necesitemos.
+
+
 > Truco: La función `requestStart(originalRequest: URLRequest)` de `NetworkSession` existe por motivos de depuración. Al imprimir por consola datos de la request original podemos exponer datos sensibles, por lo que se recomienda usar un logger o una condición para mostrar esta información sólo en debug.
 
 ``` swift 
 extension URLSession: NetworkSession {
-    public func requestStart(originalRequest: URLRequest) {
+    public func requestStart(session: NetworkSession, originalRequest: URLRequest) {
         #if DEBUG
         print(originalRequest.curl)
         #endif
@@ -70,9 +85,23 @@ La definición del protocolo `NetworkSession` es la siguiente:
 /// Contiene todos los métodos disponibles para realizar llamadas con async/await
 public protocol NetworkSession: URLSession {
     
-    /// Este método se llamará antes de que comience cualquier request. Tiene como parámetro de entrada la URLRequest a la que se está llamando y su único objetivo es que sirva de caracter informativo
-    /// - Parameter originalRequest: request original a la que se llamará
-    func requestStart(originalRequest: URLRequest)
+    /// Este método se llamará cuando se finalice cualquier request. Tiene como parámetro de entrada el `NetworkSession` que realiza la petición y la `URLRequest` original a la que se está llamando.
+    /// Este método permite interceptar la respuesta antes de continuar con el flujo, pudiendo forzar el reintento de la petición con una nueva `URLRequest`
+    /// Por ejemplo, se puede usar para controlar los códigos de error 401, permitiendo realizar el refresco de un token y reintentar la petición
+    /// - Parameters:
+    ///  - result: Resultado de la petición. En caso de que la petición haya tenido respuesta del servidor contendrá un `NetworkSessionInterception`. En cualquier otro caso contendrá un `Error`
+    ///  - session: `NetworkSession` que realiza la petición
+    ///  - originalRequest: `URLRequest` original a la que se está llamando
+    ///  - retryNumber: Número de intentos que se han realizado para la petición. El primer intento es 0.
+    ///  - Returns: `NetworkSessionInterceptionResult` que indica si se debe continuar con el flujo o si se debe reintentar la petición con una nueva `URLRequest`
+    func interceptResponse(result: Result<NetworkSessionInterception, Error>, session: NetworkSession, originalRequest: URLRequest, retryNumber: Int) async throws -> NetworkSessionInterceptionResult
+    
+    /// Este método se llamará antes de que comience cualquier request. Tiene como parámetro de entrada la URLRequest a la que se está llamando y su único objetivo es que sirva de caracter informativo.
+    /// La implementación por defecto imprime el curl de la request sólo en entornos de debug a través de la condificón `#if DEBUG`
+    /// - Parameters:
+    /// - session: `NetworkSession` que realiza la petición
+    /// - originalRequest: `URLRequest` original a la que se está llamando
+    func requestStart(session: NetworkSession, originalRequest: URLRequest)
     
     // Descarga el contenido de un `URLRequestConvertible` y lo almacena en memoria. `URLRequestConvertible` es en esencia un `URLRequest`. De forma básica podemos usar un `URL` o un `URLRequest` para realizar la petición
     /// - Parameters:
@@ -137,14 +166,14 @@ public protocol NetworkSession: URLSession {
     ///   - delegate: Delegado que recibe los eventos del ciclo de vida de la petición
     /// - Returns: Respuesta del servidor que contiene `Data` y `URLResponse`
     @available(iOS 15, tvOS 15, *)
-    func requestUpload(for request: URLRequestConvertible, from bodyData: Data, delegate: URLSessionTaskDelegate?) async throws -> NetworkDataResponse
+    func requestUpload(for request: URLRequestConvertible, from bodyData: Data, delegate: URLSessionTaskDelegate?) async throws -> NetworkUploadResponse
     
     /// Realiza la subida de contenido a un `URLRequestConvertible`. `URLRequestConvertible` es en esencia un `URLRequest`. De forma básica podemos usar un `URL` o un `URLRequest` para realizar la petición
     /// - Parameters:
     ///   - request: `URLRequestConvertible` que se debe llamar para la subida del contenido
     ///   - bodyData: `Data` que debe enviar al servidor
     /// - Returns: Respuesta del servidor que contiene `Data` y `URLResponse`
-    func requestUpload(for request: URLRequestConvertible, from bodyData: Data) async throws -> NetworkDataResponse
+    func requestUpload(for request: URLRequestConvertible, from bodyData: Data) async throws -> NetworkUploadResponse
     
     /// Realiza la subida de contenido a una `URL` dado en formato `String`
     /// - Parameters:
@@ -153,7 +182,7 @@ public protocol NetworkSession: URLSession {
     ///   - delegate: Delegado que recibe los eventos del ciclo de vida de la petición
     /// - Returns: Respuesta del servidor que contiene `Data` y `URLResponse`
     @available(iOS 15, tvOS 15, *)
-    func requestUpload(for str: String, from bodyData: Data, delegate: URLSessionTaskDelegate?) async throws -> NetworkDataResponse
+    func requestUpload(for str: String, from bodyData: Data, delegate: URLSessionTaskDelegate?) async throws -> NetworkUploadResponse
     
     /// Realiza la subida de contenido a una `URL` dado en formato `String`
     /// - Parameters:
@@ -161,7 +190,7 @@ public protocol NetworkSession: URLSession {
     ///   - bodyData: `Data` que debe enviar al servidor
     ///   - delegate: Delegado que recibe los eventos del ciclo de vida de la petición
     /// - Returns: Respuesta del servidor que contiene `Data` y `URLResponse`
-    func requestUpload(for str: String, from bodyData: Data) async throws -> NetworkDataResponse
+    func requestUpload(for str: String, from bodyData: Data) async throws -> NetworkUploadResponse
     
     /// Realiza la subida de contenido a un `URLRequestConvertible`. `URLRequestConvertible` es en esencia un `URLRequest`. De forma básica podemos usar un `URL` o un `URLRequest` para realizar la petición
     /// - Parameters:
@@ -170,14 +199,14 @@ public protocol NetworkSession: URLSession {
     ///   - delegate: Delegado que recibe los eventos del ciclo de vida de la petición
     /// - Returns: Respuesta del servidor que contiene `Data` y `URLResponse`
     @available(iOS 15, tvOS 15, *)
-    func requestUpload(for request: URLRequestConvertible, fromFile fileURL: URL, delegate: URLSessionTaskDelegate?) async throws -> NetworkDataResponse
+    func requestUpload(for request: URLRequestConvertible, fromFile fileURL: URL, delegate: URLSessionTaskDelegate?) async throws -> NetworkUploadResponse
     
     /// Realiza la subida de contenido a un `URLRequestConvertible`. `URLRequestConvertible` es en esencia un `URLRequest`. De forma básica podemos usar un `URL` o un `URLRequest` para realizar la petición
     /// - Parameters:
     ///   - request: `URLRequestConvertible` que se debe llamar para la subida del contenido
     ///   - fromFile: `URL` del fichero que se debe enviar al servidor
     /// - Returns: Respuesta del servidor que contiene `Data` y `URLResponse`
-    func requestUpload(for request: URLRequestConvertible, fromFile fileURL: URL) async throws -> NetworkDataResponse
+    func requestUpload(for request: URLRequestConvertible, fromFile fileURL: URL) async throws -> NetworkUploadResponse
     
     /// Realiza la subida de contenido a una `URL` dado en formato `String`
     /// - Parameters:
@@ -186,14 +215,14 @@ public protocol NetworkSession: URLSession {
     ///   - delegate: Delegado que recibe los eventos del ciclo de vida de la petición
     /// - Returns: Respuesta del servidor que contiene `Data` y `URLResponse`
     @available(iOS 15, tvOS 15, *)
-    func requestUpload(for str: String, fromFile fileURL: URL, delegate: URLSessionTaskDelegate?) async throws -> NetworkDataResponse
+    func requestUpload(for str: String, fromFile fileURL: URL, delegate: URLSessionTaskDelegate?) async throws -> NetworkUploadResponse
     
     /// Realiza la subida de contenido a una `URL` dado en formato `String`
     /// - Parameters:
     ///   - str: `String` que se debe llamar para la descarga del contenido
     ///   - fromFile: `URL` del fichero que se debe enviar al servidor
     /// - Returns: Respuesta del servidor que contiene `Data` y `URLResponse`
-    func requestUpload(for str: String, fromFile fileURL: URL) async throws -> NetworkDataResponse
+    func requestUpload(for str: String, fromFile fileURL: URL) async throws -> NetworkUploadResponse
 }
 ```
 
@@ -208,6 +237,62 @@ func doRequest() async throws -> Data {
     return result.data
 }
 ```
+---
+
+### Interceptar respuesta de una petición
+
+Podemos usar la función `interceptResponse` para interceptar la respuesta antes de continuar con el flujo y detectar posibles errores o respuestas que debemos manejar de forma genérica. 
+Por ejemplo, podemos usarlo para refrescar un token cuando la respuesta es un código de error 401.
+
+``` swift
+func interceptResponse(result: Result<NetworkSessionInterception, Error>, session: NetworkSession, originalRequest: URLRequest, retryNumber: Int) async throws -> NetworkSessionInterceptionResult {
+    guard retryNumber < 1 else { return .nothing }
+    
+    var httpURLRespone: HTTPURLResponse? = nil
+    switch result {
+    case .success(.data(let dataResponse)):
+        if let _httpURLRespone = dataResponse.response as? HTTPURLResponse {
+            httpURLRespone = _httpURLRespone
+        }
+    case .success(.download(let dataResponse)):
+        if let _httpURLRespone = dataResponse.response as? HTTPURLResponse {
+            httpURLRespone = _httpURLRespone
+        }
+    case .success(.upload(let dataResponse)):
+        if let _httpURLRespone = dataResponse.response as? HTTPURLResponse {
+            httpURLRespone = _httpURLRespone
+        }
+    case .failure(let error):
+        throw error
+    }
+    if let httpURLRespone, httpURLRespone.statusCode == 401 {
+        let newRequest = try await refreshToken()
+        return .retry(newRequest)
+    }
+    return .nothing
+}
+``` 
+
+También podemos usar esta función para imprimir por consola la respuesta de la petición.
+
+``` swift
+    func interceptResponse(result: Result<NetworkSessionInterception, Error>, session: NetworkSession, originalRequest: URLRequest, retryNumber: Int) async throws -> NetworkSessionInterceptionResult {
+#if DEBUG
+        switch result {
+        case .success(.data(let response)):
+            print("[NetworkSession] - Intercept Response: \(response.data)")
+        case .success(.download(let response)):
+            print("[NetworkSession] - Intercept Response: File downloaded at path \(response.url)")
+        case .success(.upload(let response)):
+            print("[NetworkSession] - Intercept Response: \(response.data)")
+        case .failure(let error):
+            print("[NetworkSession] - Intercept Response: \(error)")
+        }
+#endif
+        return .nothing
+    }
+```
+
 ---
 
 ### Crear un `NetworkRequest`
@@ -254,9 +339,9 @@ También es posible crearse un componente totalmente personalizado que implement
 
 ---
 
-### `NetworkDataResponse` y `NetworkDownloadResponse`
+### `NetworkDataResponse`, `NetworkDownloadResponse` y `NetworkUploadResponse`
 
-La librería también encapsula la respuesta de las peticiones en un objeto `NetworkDataResponse` o `NetworkDownloadResponse` (dependiendo del método de petición utilizado) para facilitar el tratamiento de los datos.
+La librería también encapsula la respuesta de las peticiones en un objeto `NetworkDataResponse`, `NetworkDownloadResponse` o `NetworkUploadResponse` (dependiendo del método de petición utilizado) para facilitar el tratamiento de los datos.
 
 Sobre estos objetos existen algunas funciones útiles de validación de la petición y codificación de los datos desde `json` que serán muy útiles para cualquier proyecto:
 
@@ -273,7 +358,7 @@ func getFilms(searchText: String, page: Int) async throws -> FilmsSearchDTO<[Fil
 }
 ```
 
-También se pueden crear extensiones de `NetworkDataResponse` y `NetworkDownloadResponse` para crear funciones de utilidades como por ejemplo para mostrar por consola la respuesta recibida o validar la petición de forma diferente:
+También se pueden crear extensiones de `NetworkDataResponse`, `NetworkDownloadResponse` y `NetworkUploadResponse` para crear funciones de utilidades como por ejemplo para mostrar por consola la respuesta recibida o validar la petición de forma diferente:
 
 ``` swift
 extension NetworkDataResponse {

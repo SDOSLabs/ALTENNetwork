@@ -1,3 +1,6 @@
+## [4.0.0](https://github.com/SDOSLabs/ALTENNetwork/tree/4.0.0)
+- Add new function `interceptResponse` in `NetworkSession` protocol. This function allows to intercept the response before continue the process in the library. You can use this function for example to refresh the token when the response is 401.
+
 ## [3.0.1](https://github.com/SDOSLabs/ALTENNetwork/tree/3.0.1)
 - Incluido fichero `PrivacyInfo.xcprivacy` requerido por Apple: https://developer.apple.com/documentation/bundleresources/privacy_manifest_files/describing_use_of_required_reason_api
 

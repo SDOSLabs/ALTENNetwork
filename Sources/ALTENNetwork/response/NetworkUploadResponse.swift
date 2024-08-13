@@ -1,30 +1,39 @@
 //
-//  NetworkDataResponse.swift
+//  NetworkUploadResponse.swift
 //
 //  Copyright © 2022 ALTEN. All rights reserved.
 //
 
 import Foundation
 
-/// Tipo de dato que normaliza las respuestas de una petición con `NetworkSession`
-public struct NetworkDataResponse {
+/// Tipo de dato que normaliza las respuestas de una petición de subida con `NetworkSession`
+public struct NetworkUploadResponse {
     /// Datos devueltos por la petición
     public let data: Data
     /// Response de la petición
     public let response: URLResponse
     /// Request con la que se hizo la petición
     public let originalRequest: URLRequest
+    /// Tipo de subida de la petición
+    public let uploadType: UploadType
     
-    /// Crea una instancia de `NetworkDownloadResponse`
+    public enum UploadType {
+        case data(Data)
+        case file(URL)
+    }
+    
+    /// Crea una instancia de `NetworkUploadResponse`
     /// - Parameter dataResponse: Tupla con los valores devueltos por la petitición
-    public init(dataResponse: (Data, URLResponse), originalRequest: URLRequest) {
+    public init(dataResponse: (Data, URLResponse), originalRequest: URLRequest, uploadType: UploadType) {
         data = dataResponse.0
         response = dataResponse.1
         self.originalRequest = originalRequest
+        self.uploadType = uploadType
     }
 }
 
-extension NetworkDataResponse {
+
+extension NetworkUploadResponse {
     /// Transforma el `data` del objeto al tipo `Decodable` indicado. `data` deberá ser un `json`
     /// - Parameters:
     ///   - type: tipo de objeto al que se debe trasnformar
@@ -35,18 +44,18 @@ extension NetworkDataResponse {
     }
 }
 
-extension NetworkDataResponse {
+
+extension NetworkUploadResponse {
     /// Valida el `statusCode` de la petición en base a los rangos aceptados
     /// - Parameter range: rango de códigos aceptados
-    /// - Returns: la misma instancia de `NetworkDownloadResponse`
+    /// - Returns: la misma instancia de `NetworkUploadResponse`
     public func validate(correctRange range: HTTPCodes = .success) throws -> Self {
         guard let response = response as? HTTPURLResponse else {
-            throw NetworkError.responseData(.invalidResponse(self))
+            throw NetworkError.responseUpload(.invalidResponse(self))
         }
         guard range ~= response.statusCode else {
-            throw NetworkError.responseData(.invalidStatusCode(self, response.statusCode))
+            throw NetworkError.responseUpload(.invalidStatusCode(self, response.statusCode))
         }
         return self
     }
-    
 }
