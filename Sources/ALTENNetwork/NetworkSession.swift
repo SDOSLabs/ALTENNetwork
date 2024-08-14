@@ -20,7 +20,14 @@ public enum NetworkSessionInterception {
 }
 
 /// Contiene todos los métodos disponibles para realizar llamadas con async/await
-public protocol NetworkSession: URLSession {
+public protocol NetworkSession {
+    
+    /// Inicializador de la clase
+    /// - Parameter session: `URLSession` que se encargará de realizar
+    init(session: URLSession)
+    
+    /// `URLSession` que se encarga de realizar las peticiones
+    var session: URLSession { get set }
     
     /// Este método se llamará cuando se finalice cualquier request. Tiene como parámetro de entrada el `NetworkSession` que realiza la petición y la `URLRequest` original a la que se está llamando.
     /// Este método permite interceptar la respuesta antes de continuar con el flujo, pudiendo forzar el reintento de la petición con una nueva `URLRequest`
@@ -213,10 +220,10 @@ extension NetworkSession {
         do {
             let response: NetworkDataResponse
             if #available(iOS 15, tvOS 15, *) {
-                response = try await NetworkDataResponse(dataResponse: self.data(for: urlRequest, delegate: delegate), originalRequest: urlRequest)
+                response = try await NetworkDataResponse(dataResponse: session.data(for: urlRequest, delegate: delegate), originalRequest: urlRequest)
             } else {
                 response = try await withCheckedThrowingContinuation { continuation in
-                    let dataTask = self.dataTask(with: urlRequest) { data, response, error in
+                    let dataTask = session.dataTask(with: urlRequest) { data, response, error in
                         do {
                             try Task.checkCancellation()
                             if let error = error {
@@ -289,10 +296,10 @@ extension NetworkSession {
         do {
             let response: NetworkDownloadResponse
             if #available(iOS 15, tvOS 15, *) {
-                response = try await NetworkDownloadResponse(dataResponse: self.download(for: urlRequest, delegate: delegate), originalRequest: urlRequest)
+                response = try await NetworkDownloadResponse(dataResponse: session.download(for: urlRequest, delegate: delegate), originalRequest: urlRequest)
             } else {
                 response = try await withCheckedThrowingContinuation { continuation in
-                    let dataTask = self.downloadTask(with: urlRequest) { url, response, error in
+                    let dataTask = session.downloadTask(with: urlRequest) { url, response, error in
                         do {
                             try Task.checkCancellation()
                             if let error = error {
@@ -366,10 +373,10 @@ extension NetworkSession {
         do {
             let response: NetworkUploadResponse
             if #available(iOS 15, tvOS 15, *) {
-                response = try await NetworkUploadResponse(dataResponse: self.upload(for: urlRequest, from: bodyData, delegate: delegate), originalRequest: urlRequest, uploadType: .data(bodyData))
+                response = try await NetworkUploadResponse(dataResponse: session.upload(for: urlRequest, from: bodyData, delegate: delegate), originalRequest: urlRequest, uploadType: .data(bodyData))
             } else {
                 response = try await withCheckedThrowingContinuation { continuation in
-                    let dataTask = self.uploadTask(with: urlRequest, from: bodyData) { data, response, error in
+                    let dataTask = session.uploadTask(with: urlRequest, from: bodyData) { data, response, error in
                         do {
                             try Task.checkCancellation()
                             if let error = error {
@@ -442,10 +449,10 @@ extension NetworkSession {
         do {
             let response: NetworkUploadResponse
             if #available(iOS 15, tvOS 15, *) {
-                response = try await NetworkUploadResponse(dataResponse: self.upload(for: urlRequest, fromFile: fileURL, delegate: delegate), originalRequest: urlRequest, uploadType: .file(fileURL))
+                response = try await NetworkUploadResponse(dataResponse: session.upload(for: urlRequest, fromFile: fileURL, delegate: delegate), originalRequest: urlRequest, uploadType: .file(fileURL))
             } else {
                 response = try await withCheckedThrowingContinuation { continuation in
-                    let dataTask = self.uploadTask(with: urlRequest, fromFile: fileURL) { data, response, error in
+                    let dataTask = session.uploadTask(with: urlRequest, fromFile: fileURL) { data, response, error in
                         do {
                             try Task.checkCancellation()
                             if let error = error {
