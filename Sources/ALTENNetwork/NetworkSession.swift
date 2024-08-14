@@ -34,18 +34,18 @@ public protocol NetworkSession {
     /// Por ejemplo, se puede usar para controlar los códigos de error 401, permitiendo realizar el refresco de un token y reintentar la petición
     /// - Parameters:
     ///  - result: Resultado de la petición. En caso de que la petición haya tenido respuesta del servidor contendrá un `NetworkSessionInterception`. En cualquier otro caso contendrá un `Error`
-    ///  - session: `NetworkSession` que realiza la petición
+    ///  - networkSession: `NetworkSession` que realiza la petición
     ///  - originalRequest: `URLRequest` original a la que se está llamando
     ///  - retryNumber: Número de intentos que se han realizado para la petición. El primer intento es 0.
     ///  - Returns: `NetworkSessionInterceptionResult` que indica si se debe continuar con el flujo o si se debe reintentar la petición con una nueva `URLRequest`
-    func interceptResponse(result: Result<NetworkSessionInterception, Error>, session: NetworkSession, originalRequest: URLRequest, retryNumber: Int) async throws -> NetworkSessionInterceptionResult
+    func interceptResponse(networkSession: NetworkSession, originalRequest: URLRequest, retryNumber: Int, result: Result<NetworkSessionInterception, Error>) async throws -> NetworkSessionInterceptionResult
     
     /// Este método se llamará antes de que comience cualquier request. Tiene como parámetro de entrada la URLRequest a la que se está llamando y su único objetivo es que sirva de caracter informativo.
     /// La implementación por defecto imprime el curl de la request sólo en entornos de debug a través de la condificón `#if DEBUG`
     /// - Parameters:
-    /// - session: `NetworkSession` que realiza la petición
+    /// - networkSession: `NetworkSession` que realiza la petición
     /// - originalRequest: `URLRequest` original a la que se está llamando
-    func requestStart(session: NetworkSession, originalRequest: URLRequest)
+    func requestStart(networkSession: NetworkSession, originalRequest: URLRequest)
     
     // Descarga el contenido de un `URLRequestConvertible` y lo almacena en memoria. `URLRequestConvertible` es en esencia un `URLRequest`. De forma básica podemos usar un `URL` o un `URLRequest` para realizar la petición
     /// - Parameters:
@@ -170,13 +170,13 @@ public protocol NetworkSession {
 }
 
 extension NetworkSession {
-    public func requestStart(session: NetworkSession, originalRequest: URLRequest) {
+    public func requestStart(networkSession: NetworkSession, originalRequest: URLRequest) {
 #if DEBUG
         print("[NetworkSession] - Start Request: \(originalRequest.curl)")
 #endif
     }
     
-    public func interceptResponse(result: Result<NetworkSessionInterception, Error>, session: NetworkSession, originalRequest: URLRequest, retryNumber: Int) async throws -> NetworkSessionInterceptionResult {
+    func interceptResponse(networkSession: NetworkSession, originalRequest: URLRequest, retryNumber: Int, result: Result<NetworkSessionInterception, Error>) async throws -> NetworkSessionInterceptionResult {
 #if DEBUG
         switch result {
         case .success(.data(let response)):
@@ -217,7 +217,7 @@ extension NetworkSession {
     private func _requestData(for request: URLRequestConvertible, delegate: URLSessionTaskDelegate?, retryNumber: Int = 0) async throws -> NetworkDataResponse {
         let originalRequest = request.asURLRequest()
         let urlRequest = request.asURLRequest()
-        requestStart(session: self, originalRequest: urlRequest)
+        requestStart(networkSession: self, originalRequest: urlRequest)
         do {
             let response: NetworkDataResponse
             if #available(iOS 15, tvOS 15, *) {
@@ -251,7 +251,7 @@ extension NetworkSession {
         
         switch result {
         case .success(let response):
-            let interception = try await interceptResponse(result: .success(.data(response)), session: self, originalRequest: request.asURLRequest(), retryNumber: retryNumber)
+            let interception = try await interceptResponse(networkSession: self, originalRequest: request.asURLRequest(), retryNumber: retryNumber, result: .success(.data(response)))
             switch interception {
             case .nothing:
                 return response
@@ -259,7 +259,7 @@ extension NetworkSession {
                 return try await _requestData(for: newRequest, delegate: delegate, retryNumber: retryNumber + 1)
             }
         case .failure(let error):
-            let interception = try await interceptResponse(result: .failure(error), session: self, originalRequest: request.asURLRequest(), retryNumber: retryNumber)
+            let interception = try await interceptResponse(networkSession: self, originalRequest: request.asURLRequest(), retryNumber: retryNumber, result: .failure(error))
             switch interception {
             case .nothing:
                 throw error
@@ -294,7 +294,7 @@ extension NetworkSession {
     private func _requestDownload(for request: URLRequestConvertible, delegate: URLSessionTaskDelegate?, retryNumber: Int = 0) async throws -> NetworkDownloadResponse {
         let originalRequest = request.asURLRequest()
         let urlRequest = request.asURLRequest()
-        requestStart(session: self, originalRequest: urlRequest)
+        requestStart(networkSession: self, originalRequest: urlRequest)
         do {
             let response: NetworkDownloadResponse
             if #available(iOS 15, tvOS 15, *) {
@@ -329,7 +329,7 @@ extension NetworkSession {
         
         switch result {
         case .success(let response):
-            let interception = try await interceptResponse(result: .success(.download(response)), session: self, originalRequest: request.asURLRequest(), retryNumber: retryNumber)
+            let interception = try await interceptResponse(networkSession: self, originalRequest: request.asURLRequest(), retryNumber: retryNumber, result: .success(.download(response)))
             switch interception {
             case .nothing:
                 return response
@@ -337,7 +337,7 @@ extension NetworkSession {
                 return try await _requestDownload(for: newRequest, delegate: delegate, retryNumber: retryNumber + 1)
             }
         case .failure(let error):
-            let interception = try await interceptResponse(result: .failure(error), session: self, originalRequest: request.asURLRequest(), retryNumber: retryNumber)
+            let interception = try await interceptResponse(networkSession: self, originalRequest: request.asURLRequest(), retryNumber: retryNumber, result: .failure(error))
             switch interception {
             case .nothing:
                 throw error
@@ -372,7 +372,7 @@ extension NetworkSession {
     private func _requestUpload(for request: URLRequestConvertible, from bodyData: Data, delegate: URLSessionTaskDelegate?, retryNumber: Int = 0) async throws -> NetworkUploadResponse {
         let originalRequest = request.asURLRequest()
         let urlRequest = request.asURLRequest()
-        requestStart(session: self, originalRequest: urlRequest)
+        requestStart(networkSession: self, originalRequest: urlRequest)
         do {
             let response: NetworkUploadResponse
             if #available(iOS 15, tvOS 15, *) {
@@ -406,7 +406,7 @@ extension NetworkSession {
         
         switch result {
         case .success(let response):
-            let interception = try await interceptResponse(result: .success(.upload(response)), session: self, originalRequest: request.asURLRequest(), retryNumber: retryNumber)
+            let interception = try await interceptResponse(networkSession: self, originalRequest: request.asURLRequest(), retryNumber: retryNumber, result: .success(.upload(response)))
             switch interception {
             case .nothing:
                 return response
@@ -414,7 +414,7 @@ extension NetworkSession {
                 return try await _requestUpload(for: newRequest, from: bodyData, delegate: delegate, retryNumber: retryNumber + 1)
             }
         case .failure(let error):
-            let interception = try await interceptResponse(result: .failure(error), session: self, originalRequest: request.asURLRequest(), retryNumber: retryNumber)
+            let interception = try await interceptResponse(networkSession: self, originalRequest: request.asURLRequest(), retryNumber: retryNumber, result: .failure(error))
             switch interception {
             case .nothing:
                 throw error
@@ -449,7 +449,7 @@ extension NetworkSession {
     private func _requestUpload(for request: URLRequestConvertible, fromFile fileURL: URL, delegate: URLSessionTaskDelegate?, retryNumber: Int = 0) async throws -> NetworkUploadResponse {
         let originalRequest = request.asURLRequest()
         let urlRequest = request.asURLRequest()
-        requestStart(session: self, originalRequest: urlRequest)
+        requestStart(networkSession: self, originalRequest: urlRequest)
         do {
             let response: NetworkUploadResponse
             if #available(iOS 15, tvOS 15, *) {
@@ -483,7 +483,7 @@ extension NetworkSession {
         
         switch result {
         case .success(let response):
-            let interception = try await interceptResponse(result: .success(.upload(response)), session: self, originalRequest: request.asURLRequest(), retryNumber: retryNumber)
+            let interception = try await interceptResponse(networkSession: self, originalRequest: request.asURLRequest(), retryNumber: retryNumber, result: .success(.upload(response)))
             switch interception {
             case .nothing:
                 return response
@@ -491,7 +491,7 @@ extension NetworkSession {
                 return try await _requestUpload(for: newRequest, fromFile: fileURL, delegate: delegate, retryNumber: retryNumber + 1)
             }
         case .failure(let error):
-            let interception = try await interceptResponse(result: .failure(error), session: self, originalRequest: request.asURLRequest(), retryNumber: retryNumber)
+            let interception = try await interceptResponse(networkSession: self, originalRequest: request.asURLRequest(), retryNumber: retryNumber, result: .failure(error))
             switch interception {
             case .nothing:
                 throw error
