@@ -176,7 +176,7 @@ extension NetworkSession {
 #endif
     }
     
-    func interceptResponse(result: Result<NetworkSessionInterception, Error>, session: NetworkSession, originalRequest: URLRequest, retryNumber: Int) async throws -> NetworkSessionInterceptionResult {
+    public func interceptResponse(result: Result<NetworkSessionInterception, Error>, session: NetworkSession, originalRequest: URLRequest, retryNumber: Int) async throws -> NetworkSessionInterceptionResult {
 #if DEBUG
         switch result {
         case .success(.data(let response)):
