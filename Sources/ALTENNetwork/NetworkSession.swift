@@ -170,7 +170,7 @@ public protocol NetworkSession {
 }
 
 extension NetworkSession {
-    public func requestStart(originalRequest: URLRequest) {
+    public func requestStart(session: NetworkSession, originalRequest: URLRequest) {
 #if DEBUG
         print("[NetworkSession] - Start Request: \(originalRequest.curl)")
 #endif
@@ -217,7 +217,7 @@ extension NetworkSession {
     private func _requestData(for request: URLRequestConvertible, delegate: URLSessionTaskDelegate?, retryNumber: Int = 0) async throws -> NetworkDataResponse {
         let originalRequest = request.asURLRequest()
         let urlRequest = request.asURLRequest()
-        requestStart(originalRequest: urlRequest)
+        requestStart(session: self, originalRequest: urlRequest)
         do {
             let response: NetworkDataResponse
             if #available(iOS 15, tvOS 15, *) {
@@ -294,7 +294,7 @@ extension NetworkSession {
     private func _requestDownload(for request: URLRequestConvertible, delegate: URLSessionTaskDelegate?, retryNumber: Int = 0) async throws -> NetworkDownloadResponse {
         let originalRequest = request.asURLRequest()
         let urlRequest = request.asURLRequest()
-        requestStart(originalRequest: urlRequest)
+        requestStart(session: self, originalRequest: urlRequest)
         do {
             let response: NetworkDownloadResponse
             if #available(iOS 15, tvOS 15, *) {
@@ -372,7 +372,7 @@ extension NetworkSession {
     private func _requestUpload(for request: URLRequestConvertible, from bodyData: Data, delegate: URLSessionTaskDelegate?, retryNumber: Int = 0) async throws -> NetworkUploadResponse {
         let originalRequest = request.asURLRequest()
         let urlRequest = request.asURLRequest()
-        requestStart(originalRequest: urlRequest)
+        requestStart(session: self, originalRequest: urlRequest)
         do {
             let response: NetworkUploadResponse
             if #available(iOS 15, tvOS 15, *) {
@@ -449,7 +449,7 @@ extension NetworkSession {
     private func _requestUpload(for request: URLRequestConvertible, fromFile fileURL: URL, delegate: URLSessionTaskDelegate?, retryNumber: Int = 0) async throws -> NetworkUploadResponse {
         let originalRequest = request.asURLRequest()
         let urlRequest = request.asURLRequest()
-        requestStart(originalRequest: urlRequest)
+        requestStart(session: self, originalRequest: urlRequest)
         do {
             let response: NetworkUploadResponse
             if #available(iOS 15, tvOS 15, *) {
