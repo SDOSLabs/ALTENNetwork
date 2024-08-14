@@ -215,12 +215,13 @@ extension NetworkSession {
     }
     
     private func _requestData(for request: URLRequestConvertible, delegate: URLSessionTaskDelegate?, retryNumber: Int = 0) async throws -> NetworkDataResponse {
+        let originalRequest = request.asURLRequest()
         let urlRequest = request.asURLRequest()
         requestStart(originalRequest: urlRequest)
         do {
             let response: NetworkDataResponse
             if #available(iOS 15, tvOS 15, *) {
-                response = try await NetworkDataResponse(dataResponse: session.data(for: urlRequest, delegate: delegate), originalRequest: urlRequest)
+                response = try await NetworkDataResponse(dataResponse: session.data(for: urlRequest, delegate: delegate), originalRequest: originalRequest)
             } else {
                 response = try await withCheckedThrowingContinuation { continuation in
                     let dataTask = session.dataTask(with: urlRequest) { data, response, error in
@@ -229,7 +230,7 @@ extension NetworkSession {
                             if let error = error {
                                 continuation.resume(throwing: error)
                             } else if let data = data, let response = response {
-                                continuation.resume(returning: NetworkDataResponse(dataResponse: (data, response), originalRequest: urlRequest))
+                                continuation.resume(returning: NetworkDataResponse(dataResponse: (data, response), originalRequest: originalRequest))
                             } else {
                                 continuation.resume(throwing: NetworkError.unknown)
                             }
@@ -240,9 +241,9 @@ extension NetworkSession {
                     dataTask.resume()
                 }
             }
-            return try await _handleResponseDataInterpection(result: .success(response), request: urlRequest, delegate: delegate, retryNumber: retryNumber)
+            return try await _handleResponseDataInterpection(result: .success(response), request: originalRequest, delegate: delegate, retryNumber: retryNumber)
         } catch {
-            return try await _handleResponseDataInterpection(result: .failure(error), request: urlRequest, delegate: delegate, retryNumber: retryNumber)
+            return try await _handleResponseDataInterpection(result: .failure(error), request: originalRequest, delegate: delegate, retryNumber: retryNumber)
         }
     }
     
@@ -291,12 +292,13 @@ extension NetworkSession {
     }
     
     private func _requestDownload(for request: URLRequestConvertible, delegate: URLSessionTaskDelegate?, retryNumber: Int = 0) async throws -> NetworkDownloadResponse {
+        let originalRequest = request.asURLRequest()
         let urlRequest = request.asURLRequest()
         requestStart(originalRequest: urlRequest)
         do {
             let response: NetworkDownloadResponse
             if #available(iOS 15, tvOS 15, *) {
-                response = try await NetworkDownloadResponse(dataResponse: session.download(for: urlRequest, delegate: delegate), originalRequest: urlRequest)
+                response = try await NetworkDownloadResponse(dataResponse: session.download(for: urlRequest, delegate: delegate), originalRequest: originalRequest)
             } else {
                 response = try await withCheckedThrowingContinuation { continuation in
                     let dataTask = session.downloadTask(with: urlRequest) { url, response, error in
@@ -305,7 +307,7 @@ extension NetworkSession {
                             if let error = error {
                                 continuation.resume(throwing: error)
                             } else if let url = url, let response = response {
-                                continuation.resume(returning: NetworkDownloadResponse(dataResponse: (url, response), originalRequest: urlRequest))
+                                continuation.resume(returning: NetworkDownloadResponse(dataResponse: (url, response), originalRequest: originalRequest))
                             } else {
                                 continuation.resume(throwing: NetworkError.unknown)
                             }
@@ -317,9 +319,9 @@ extension NetworkSession {
                     dataTask.resume()
                 }
             }
-            return try await _handleResponseDownloadInterpection(result: .success(response), request: urlRequest, delegate: delegate, retryNumber: retryNumber)
+            return try await _handleResponseDownloadInterpection(result: .success(response), request: originalRequest, delegate: delegate, retryNumber: retryNumber)
         } catch {
-            return try await _handleResponseDownloadInterpection(result: .failure(error), request: urlRequest, delegate: delegate, retryNumber: retryNumber)
+            return try await _handleResponseDownloadInterpection(result: .failure(error), request: originalRequest, delegate: delegate, retryNumber: retryNumber)
         }
     }
     
@@ -368,12 +370,13 @@ extension NetworkSession {
     }
     
     private func _requestUpload(for request: URLRequestConvertible, from bodyData: Data, delegate: URLSessionTaskDelegate?, retryNumber: Int = 0) async throws -> NetworkUploadResponse {
+        let originalRequest = request.asURLRequest()
         let urlRequest = request.asURLRequest()
         requestStart(originalRequest: urlRequest)
         do {
             let response: NetworkUploadResponse
             if #available(iOS 15, tvOS 15, *) {
-                response = try await NetworkUploadResponse(dataResponse: session.upload(for: urlRequest, from: bodyData, delegate: delegate), originalRequest: urlRequest, uploadType: .data(bodyData))
+                response = try await NetworkUploadResponse(dataResponse: session.upload(for: urlRequest, from: bodyData, delegate: delegate), originalRequest: originalRequest, uploadType: .data(bodyData))
             } else {
                 response = try await withCheckedThrowingContinuation { continuation in
                     let dataTask = session.uploadTask(with: urlRequest, from: bodyData) { data, response, error in
@@ -382,7 +385,7 @@ extension NetworkSession {
                             if let error = error {
                                 continuation.resume(throwing: error)
                             } else if let data = data, let response = response {
-                                continuation.resume(returning: NetworkUploadResponse(dataResponse: (data, response), originalRequest: urlRequest, uploadType: .data(bodyData)))
+                                continuation.resume(returning: NetworkUploadResponse(dataResponse: (data, response), originalRequest: originalRequest, uploadType: .data(bodyData)))
                             } else {
                                 continuation.resume(throwing: NetworkError.unknown)
                             }
@@ -393,9 +396,9 @@ extension NetworkSession {
                     dataTask.resume()
                 }
             }
-            return try await _handleResponseUploadInterpection(result: .success(response), request: urlRequest, from: bodyData, delegate: delegate, retryNumber: retryNumber)
+            return try await _handleResponseUploadInterpection(result: .success(response), request: originalRequest, from: bodyData, delegate: delegate, retryNumber: retryNumber)
         } catch {
-            return try await _handleResponseUploadInterpection(result: .failure(error), request: urlRequest, from: bodyData, delegate: delegate, retryNumber: retryNumber)
+            return try await _handleResponseUploadInterpection(result: .failure(error), request: originalRequest, from: bodyData, delegate: delegate, retryNumber: retryNumber)
         }
     }
     
@@ -444,12 +447,13 @@ extension NetworkSession {
     }
     
     private func _requestUpload(for request: URLRequestConvertible, fromFile fileURL: URL, delegate: URLSessionTaskDelegate?, retryNumber: Int = 0) async throws -> NetworkUploadResponse {
+        let originalRequest = request.asURLRequest()
         let urlRequest = request.asURLRequest()
         requestStart(originalRequest: urlRequest)
         do {
             let response: NetworkUploadResponse
             if #available(iOS 15, tvOS 15, *) {
-                response = try await NetworkUploadResponse(dataResponse: session.upload(for: urlRequest, fromFile: fileURL, delegate: delegate), originalRequest: urlRequest, uploadType: .file(fileURL))
+                response = try await NetworkUploadResponse(dataResponse: session.upload(for: urlRequest, fromFile: fileURL, delegate: delegate), originalRequest: originalRequest, uploadType: .file(fileURL))
             } else {
                 response = try await withCheckedThrowingContinuation { continuation in
                     let dataTask = session.uploadTask(with: urlRequest, fromFile: fileURL) { data, response, error in
@@ -458,7 +462,7 @@ extension NetworkSession {
                             if let error = error {
                                 continuation.resume(throwing: error)
                             } else if let data = data, let response = response {
-                                continuation.resume(returning: NetworkUploadResponse(dataResponse: (data, response), originalRequest: urlRequest, uploadType: .file(fileURL)))
+                                continuation.resume(returning: NetworkUploadResponse(dataResponse: (data, response), originalRequest: originalRequest, uploadType: .file(fileURL)))
                             } else {
                                 continuation.resume(throwing: NetworkError.unknown)
                             }
@@ -469,9 +473,9 @@ extension NetworkSession {
                     dataTask.resume()
                 }
             }
-            return try await _handleResponseUploadInterpection(result: .success(response), request: urlRequest, fromFile: fileURL, delegate: delegate, retryNumber: retryNumber)
+            return try await _handleResponseUploadInterpection(result: .success(response), request: originalRequest, fromFile: fileURL, delegate: delegate, retryNumber: retryNumber)
         } catch {
-            return try await _handleResponseUploadInterpection(result: .failure(error), request: urlRequest, fromFile: fileURL, delegate: delegate, retryNumber: retryNumber)
+            return try await _handleResponseUploadInterpection(result: .failure(error), request: originalRequest, fromFile: fileURL, delegate: delegate, retryNumber: retryNumber)
         }
     }
     
