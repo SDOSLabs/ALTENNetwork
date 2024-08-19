@@ -1,5 +1,60 @@
 ## [4.0.0](https://github.com/SDOSLabs/ALTENNetwork/tree/4.0.0)
+- Change protocol `NetworkSession`. Now it's not recommended extend `URLSession` with `NetworkSession`. Instead create your own class and implement `NetworkSession`.
+
+``` swift
+final class AppURLSession: NetworkSession {
+    var session: URLSession
+    
+    init(session: URLSession) {
+        self.session = session
+    }
+}
+````
+
+With this class you can call any web services:
+
+``` swift
+let networkSession: NetworkSession = AppURLSession(session: URLSession(configuration: configuration, delegate: nil, delegateQueue: nil))
+
+func doRequest() async throws -> Data {
+    let url = "https://alten.es"
+    let result = try await networkSession.requestData(for: url)
+    return result.data
+}
+````
+
 - Add new function `interceptResponse` in `NetworkSession` protocol. This function allows to intercept the response before continue the process in the library. You can use this function for example to refresh the token when the response is 401.
+
+``` swift
+extension AppURLSession {
+    func interceptResponse(networkSession: NetworkSession, originalRequest: URLRequest, retryNumber: Int, result: Result<NetworkSessionInterception, Error>) async throws -> NetworkSessionInterceptionResult {
+        guard retryNumber < 1 else { return .nothing }
+        
+        var httpURLRespone: HTTPURLResponse? = nil
+        switch result {
+        case .success(.data(let dataResponse)):
+            if let _httpURLRespone = dataResponse.response as? HTTPURLResponse {
+                httpURLRespone = _httpURLRespone
+            }
+        case .success(.download(let dataResponse)):
+            if let _httpURLRespone = dataResponse.response as? HTTPURLResponse {
+                httpURLRespone = _httpURLRespone
+            }
+        case .success(.upload(let dataResponse)):
+            if let _httpURLRespone = dataResponse.response as? HTTPURLResponse {
+                httpURLRespone = _httpURLRespone
+            }
+        case .failure(let error):
+            throw error
+        }
+        if let httpURLRespone, httpURLRespone.statusCode == 401 {
+            let newRequest = try await refreshToken() // Implement refresh and return a new request with others authentication headers
+            return .retry(newRequest)
+        }
+        return .nothing
+    }
+}
+``` 
 
 ## [3.0.1](https://github.com/SDOSLabs/ALTENNetwork/tree/3.0.1)
 - Incluido fichero `PrivacyInfo.xcprivacy` requerido por Apple: https://developer.apple.com/documentation/bundleresources/privacy_manifest_files/describing_use_of_required_reason_api

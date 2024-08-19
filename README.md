@@ -5,8 +5,9 @@
     - [Como dependencia en Package.swift](#como-dependencia-en-packageswift)
   - [Cómo se usa](#cómo-se-usa)
     - [Hacer una petición](#hacer-una-petición)
+    - [Interceptar respuesta de una petición](#interceptar-respuesta-de-una-petición)
     - [Crear un `NetworkRequest`](#crear-un-networkrequest)
-    - [`NetworkDataResponse` y `NetworkDownloadResponse`](#networkdataresponse-y-networkdownloadresponse)
+    - [`NetworkDataResponse`, `NetworkDownloadResponse` y `NetworkUploadResponse`](#networkdataresponse-networkdownloadresponse-y-networkuploadresponse)
     - [Control de conexión con `NetworkReachability`](#control-de-conexión-con-networkreachability)
 
 # ALTENNetwork
@@ -28,7 +29,7 @@ https://github.com/SDOSLabs/ALTENNetwork.git
 
 ``` swift
 dependencies: [
-    .package(url: "https://github.com/SDOSLabs/ALTENNetwork.git", .upToNextMajor(from: "3.0.1"))
+    .package(url: "https://github.com/SDOSLabs/ALTENNetwork.git", .upToNextMajor(from: "4.0.0"))
 ]
 ```
 
@@ -44,33 +45,39 @@ Se debe añadir al target de la aplicación en la que queremos que esté disponi
 
 ## Cómo se usa
 
-La librería proporciona el protocolo `NetworkSession` que añade soporte para `Async/Await` desde `iOS/tvOS 13` en adelante. 
-El único requisito para su uso es hacer que `URLSession` implemente el protocolo `NetworkSession`.
-
-``` swift 
-extension URLSession: NetworkSession { }
-``` 
-
-También se puede crear una subclase de `URLSession` que implemente el protocolo `NetworkSession` y añadir la lógica que se necesite. Por ejemplo, añadir un log de la request original.
+La librería usa el protocolo `NetworkSession` como core de su funcionalidad, que proporciona soporte para realizar llamadas a internet con `Async/Await` desde `iOS/tvOS 13` en adelante.
+Para usar la librería hay que crear una clase que implemente el protocolo `NetworkSession`. Por defecto, sólo es necesario pasarle la `URLSession` que se usará para hacer las llamadas a servicios.
 
 ``` swift
-final class MySession: URLSession, NetworkSession {
-    public func requestStart(originalRequest: URLRequest) {
-        #if DEBUG
-        print(originalRequest.curl)
-        #endif
+final class AppURLSession: NetworkSession {
+    var session: URLSession
+    
+    init(session: URLSession) {
+        self.session = session
     }
 }
-```
+````
 
-En este caso, la clase `MySession` se usará para realizar las llamadas a la API que necesitemos.
+Todos los demás métodos del protocolo están implementados y no es necesario hacer nada más para usarla, pero se pueden sobrescribir si fuera necesario.
+
+A partir de aquí, sólo será necesario crear un objeto del tipo `AppURLSession` para hacer las llamadas a servicios.
+
+``` swift
+let networkSession: NetworkSession = AppURLSession(session: URLSession(configuration: configuration, delegate: nil, delegateQueue: nil))
+
+func doRequest() async throws -> Data {
+    let url = "https://alten.es"
+    let result = try await networkSession.requestData(for: url)
+    return result.data
+}
+````
 
 
-> Truco: La función `requestStart(originalRequest: URLRequest)` de `NetworkSession` existe por motivos de depuración. Al imprimir por consola datos de la request original podemos exponer datos sensibles, por lo que se recomienda usar un logger o una condición para mostrar esta información sólo en debug.
+> Truco: La función `requestStart(networkSession: NetworkSession, originalRequest: URLRequest)` de `NetworkSession` existe por motivos de depuración. Al imprimir por consola datos de la request original podemos exponer datos sensibles, por lo que se recomienda usar un logger o una condición para mostrar esta información sólo en debug.
 
 ``` swift 
-extension URLSession: NetworkSession {
-    public func requestStart(session: NetworkSession, originalRequest: URLRequest) {
+extension AppURLSession {
+    func requestStart(networkSession: NetworkSession, originalRequest: URLRequest) {
         #if DEBUG
         print(originalRequest.curl)
         #endif
@@ -83,25 +90,32 @@ La definición del protocolo `NetworkSession` es la siguiente:
 
 ``` swift 
 /// Contiene todos los métodos disponibles para realizar llamadas con async/await
-public protocol NetworkSession: URLSession {
+public protocol NetworkSession {
+    
+    /// Inicializador de la clase
+    /// - Parameter session: `URLSession` que se encargará de realizar
+    init(session: URLSession)
+    
+    /// `URLSession` que se encarga de realizar las peticiones
+    var session: URLSession { get set }
     
     /// Este método se llamará cuando se finalice cualquier request. Tiene como parámetro de entrada el `NetworkSession` que realiza la petición y la `URLRequest` original a la que se está llamando.
     /// Este método permite interceptar la respuesta antes de continuar con el flujo, pudiendo forzar el reintento de la petición con una nueva `URLRequest`
     /// Por ejemplo, se puede usar para controlar los códigos de error 401, permitiendo realizar el refresco de un token y reintentar la petición
     /// - Parameters:
     ///  - result: Resultado de la petición. En caso de que la petición haya tenido respuesta del servidor contendrá un `NetworkSessionInterception`. En cualquier otro caso contendrá un `Error`
-    ///  - session: `NetworkSession` que realiza la petición
+    ///  - networkSession: `NetworkSession` que realiza la petición
     ///  - originalRequest: `URLRequest` original a la que se está llamando
     ///  - retryNumber: Número de intentos que se han realizado para la petición. El primer intento es 0.
     ///  - Returns: `NetworkSessionInterceptionResult` que indica si se debe continuar con el flujo o si se debe reintentar la petición con una nueva `URLRequest`
-    func interceptResponse(result: Result<NetworkSessionInterception, Error>, session: NetworkSession, originalRequest: URLRequest, retryNumber: Int) async throws -> NetworkSessionInterceptionResult
+    func interceptResponse(networkSession: NetworkSession, originalRequest: URLRequest, retryNumber: Int, result: Result<NetworkSessionInterception, Error>) async throws -> NetworkSessionInterceptionResult
     
     /// Este método se llamará antes de que comience cualquier request. Tiene como parámetro de entrada la URLRequest a la que se está llamando y su único objetivo es que sirva de caracter informativo.
     /// La implementación por defecto imprime el curl de la request sólo en entornos de debug a través de la condificón `#if DEBUG`
     /// - Parameters:
-    /// - session: `NetworkSession` que realiza la petición
+    /// - networkSession: `NetworkSession` que realiza la petición
     /// - originalRequest: `URLRequest` original a la que se está llamando
-    func requestStart(session: NetworkSession, originalRequest: URLRequest)
+    func requestStart(networkSession: NetworkSession, originalRequest: URLRequest)
     
     // Descarga el contenido de un `URLRequestConvertible` y lo almacena en memoria. `URLRequestConvertible` es en esencia un `URLRequest`. De forma básica podemos usar un `URL` o un `URLRequest` para realizar la petición
     /// - Parameters:
@@ -231,9 +245,11 @@ public protocol NetworkSession: URLSession {
 Para usar cualquiera de estas funciones hace falta invocarla desde un contexto asíncrono:
 
 ``` swift 
+let networkSession: NetworkSession = AppURLSession(session: URLSession(configuration: configuration, delegate: nil, delegateQueue: nil))
+
 func doRequest() async throws -> Data {
     let url = "https://alten.es"
-    let result = try await session.requestData(for: url)
+    let result = try await networkSession.requestData(for: url)
     return result.data
 }
 ```
@@ -245,38 +261,41 @@ Podemos usar la función `interceptResponse` para interceptar la respuesta antes
 Por ejemplo, podemos usarlo para refrescar un token cuando la respuesta es un código de error 401.
 
 ``` swift
-func interceptResponse(result: Result<NetworkSessionInterception, Error>, session: NetworkSession, originalRequest: URLRequest, retryNumber: Int) async throws -> NetworkSessionInterceptionResult {
-    guard retryNumber < 1 else { return .nothing }
-    
-    var httpURLRespone: HTTPURLResponse? = nil
-    switch result {
-    case .success(.data(let dataResponse)):
-        if let _httpURLRespone = dataResponse.response as? HTTPURLResponse {
-            httpURLRespone = _httpURLRespone
+extension AppURLSession {
+    func interceptResponse(networkSession: NetworkSession, originalRequest: URLRequest, retryNumber: Int, result: Result<NetworkSessionInterception, Error>) async throws -> NetworkSessionInterceptionResult {
+        guard retryNumber < 1 else { return .nothing }
+        
+        var httpURLRespone: HTTPURLResponse? = nil
+        switch result {
+        case .success(.data(let dataResponse)):
+            if let _httpURLRespone = dataResponse.response as? HTTPURLResponse {
+                httpURLRespone = _httpURLRespone
+            }
+        case .success(.download(let dataResponse)):
+            if let _httpURLRespone = dataResponse.response as? HTTPURLResponse {
+                httpURLRespone = _httpURLRespone
+            }
+        case .success(.upload(let dataResponse)):
+            if let _httpURLRespone = dataResponse.response as? HTTPURLResponse {
+                httpURLRespone = _httpURLRespone
+            }
+        case .failure(let error):
+            throw error
         }
-    case .success(.download(let dataResponse)):
-        if let _httpURLRespone = dataResponse.response as? HTTPURLResponse {
-            httpURLRespone = _httpURLRespone
+        if let httpURLRespone, httpURLRespone.statusCode == 401 {
+            let newRequest = try await refreshToken() // Implement refresh and return a new request with others authentication headers
+            return .retry(newRequest)
         }
-    case .success(.upload(let dataResponse)):
-        if let _httpURLRespone = dataResponse.response as? HTTPURLResponse {
-            httpURLRespone = _httpURLRespone
-        }
-    case .failure(let error):
-        throw error
+        return .nothing
     }
-    if let httpURLRespone, httpURLRespone.statusCode == 401 {
-        let newRequest = try await refreshToken()
-        return .retry(newRequest)
-    }
-    return .nothing
 }
 ``` 
 
 También podemos usar esta función para imprimir por consola la respuesta de la petición.
 
 ``` swift
-    func interceptResponse(result: Result<NetworkSessionInterception, Error>, session: NetworkSession, originalRequest: URLRequest, retryNumber: Int) async throws -> NetworkSessionInterceptionResult {
+extension AppURLSession {
+    func interceptResponse(networkSession: NetworkSession, originalRequest: URLRequest, retryNumber: Int, result: Result<NetworkSessionInterception, Error>) async throws -> NetworkSessionInterceptionResult {
 #if DEBUG
         switch result {
         case .success(.data(let response)):
@@ -291,6 +310,7 @@ También podemos usar esta función para imprimir por consola la respuesta de la
 #endif
         return .nothing
     }
+}
 ```
 
 ---
@@ -300,6 +320,8 @@ También podemos usar esta función para imprimir por consola la respuesta de la
 También proporciona la clase `NetworkRequest` como forma sencilla de crear peticiones con los parámetros más comunes:
 
 ``` swift
+let networkSession: NetworkSession = AppURLSession(session: URLSession(configuration: configuration, delegate: nil, delegateQueue: nil))
+
 func getFilms(searchText: String, page: Int) async throws -> Data {
     let networkRequest = try NetworkRequest(url: "https://www.omdbapi.com/", query: [
         .query(key: "apikey", value: "xxxxxxxx"),
@@ -307,7 +329,7 @@ func getFilms(searchText: String, page: Int) async throws -> Data {
         .query(key: "s", value: searchText)
     ])
     
-    let result = try await session.requestData(for: networkRequest)
+    let result = try await networkSession.requestData(for: networkRequest)
     return result.data
 }
 ```
@@ -319,6 +341,8 @@ Los parámetros de la query se pueden pasar como un tipo `NetworkQuery`. El valo
 Más ejemplos:
 
 ``` swift
+let networkSession: NetworkSession = AppURLSession(session: URLSession(configuration: configuration, delegate: nil, delegateQueue: nil))
+
 func getFilms(searchText: String, page: Int) async throws -> Data {
     let networkRequest = try NetworkRequest(
         url: "https://www.omdbapi.com/",
@@ -328,7 +352,7 @@ func getFilms(searchText: String, page: Int) async throws -> Data {
         jsonBody: FilmRequestDTO(apiKey: "xxxxxxxx", s: searchText, page: page),
         encoder: JSONEncoder())
     
-    let result = try await session.requestData(for: networkRequest)
+    let result = try await networkSession.requestData(for: networkRequest)
     return result.data
 }
 ```
@@ -346,6 +370,8 @@ La librería también encapsula la respuesta de las peticiones en un objeto `Net
 Sobre estos objetos existen algunas funciones útiles de validación de la petición y codificación de los datos desde `json` que serán muy útiles para cualquier proyecto:
 
 ``` swift
+let networkSession: NetworkSession = AppURLSession(session: URLSession(configuration: configuration, delegate: nil, delegateQueue: nil))
+
 func getFilms(searchText: String, page: Int) async throws -> FilmsSearchDTO<[FilmDTO]> {
     let networkRequest = try NetworkRequest(url: "https://www.omdbapi.com/", query: [
         .query(key: "apikey", value: "xxxxxxxx"),
@@ -353,7 +379,7 @@ func getFilms(searchText: String, page: Int) async throws -> FilmsSearchDTO<[Fil
         .query(key: "s", value: searchText)
     ])
     
-    let result = try await session.requestData(for: networkRequest).validate().jsonDecode(FilmsSearchDTO<[FilmDTO]>.self)
+    let result = try await networkSession.requestData(for: networkRequest).validate().jsonDecode(FilmsSearchDTO<[FilmDTO]>.self)
     return result
 }
 ```
