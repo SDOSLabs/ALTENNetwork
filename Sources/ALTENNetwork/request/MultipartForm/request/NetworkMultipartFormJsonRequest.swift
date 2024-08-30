@@ -6,14 +6,34 @@
 
 import Foundation
 
+/// Estructura que representa una petición de tipo `multipart/form-data` con un valor de tipo `Encodable` que será codificado a JSON
+/// Esta implementación añade automáticamente la cabecera `Content-Disposition: form-data; name=\"<name>\"`
 public struct NetworkMultipartFormJsonRequest<T: Encodable> {
+    
+    /// Nombre usado en el key "name" de la cabecera "Content-Disposition"
     public let name: String
+    
+    /// Valor de la solicitud
     public let value: T
+    
+    /// Instancia de `JSONEncoder` usado para transformar el valor de la solicitud a JSON
     public let encoder: JSONEncoder
+    
+    /// Parámetros adicionales de la cabecera "Content-Disposition"
     public let additionalContentDispositionParameters: [NetworkMultipartFormParameterConvertible]?
+    
+    /// Cabeceras adicionales
     public let additionalHeaders: [NetworkMultipartFormHeaderConvertible]?
     
-    public init(name: String, value: T,
+    /// Inicializador de la solicitud
+    /// - Parameters:
+    /// - name: Nombre usado en el parámetro "name" de la cabecera "Content-Disposition"
+    /// - value: Valor de la solicitud
+    /// - encoder: Instancia de `JSONEncoder` usado para transformar el valor de la solicitud a JSON
+    /// - additionalContentDispositionParameters: Parámetros adicionales de la cabecera "Content-Disposition"
+    /// - additionalHeaders: Cabeceras adicionales
+    public init(name: String,
+                value: T,
                 encoder: JSONEncoder = JSONEncoder(),
                 additionalContentDispositionParameters: [NetworkMultipartFormParameterConvertible]? = nil,
                 additionalHeaders: [NetworkMultipartFormHeaderConvertible]? = nil) {

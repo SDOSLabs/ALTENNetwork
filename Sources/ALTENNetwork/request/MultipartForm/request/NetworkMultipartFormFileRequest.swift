@@ -6,14 +6,36 @@
 
 import Foundation
 
+/// Estructura que representa un archivo a ser enviado en una petición de tipo `multipart/form-data`
+/// Esta implementación añade automáticamente la cabecera `Content-Disposition: form-data; name=\"<name>\"`
+/// También añade la cabecera `Content-Type: <contentType>`
 public struct NetworkMultipartFormFileRequest {
+    /// Nombre usado en el key "name" de la cabecera "Content-Disposition
     public let name: String
+    
+    /// Valor de la solicitud. Generalmente se trata de un archivo
     public let value: Data
+    
+    /// Nombre del archivo
     public let filename: String
+    
+    /// Tipo de contenido del archivo. Es el valor que se incluye en la cabecera "Content-Type"
     public let contentType: String
+    
+    /// Parámetros adicionales de la cabecera "Content-Disposition"
     public let additionalContentDispositionParameters: [NetworkMultipartFormParameterConvertible]?
+    
+    /// Cabeceras adicionales
     public let additionalHeaders: [NetworkMultipartFormHeaderConvertible]?
     
+    /// Inicializador de la solicitud
+    /// - Parameters:
+    /// - name: Nombre usado en el parámetro "name" de la cabecera "Content-Disposition"
+    /// - filename: Nombre del archivo. Es el valor que se incluye en la parámetro "filename" de la cabecera "Content-Disposition"
+    /// - value: Valor de la solicitud
+    /// - contentType: Tipo de contenido del archivo. Es el valor que se incluye en la cabecera "Content-Type"
+    /// - additionalContentDispositionParameters: Parámetros adicionales de la cabecera "Content-Disposition"
+    /// - additionalHeaders: Cabeceras adicionales
     public init(name: String,
                 filename: String,
                 value: Data,

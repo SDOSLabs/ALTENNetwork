@@ -6,12 +6,27 @@
 
 import Foundation
 
+/// Estructura que representa una solicitud de tipo multipart/form-data de datos
+/// Esta implementación añade automáticamente la cabecera `Content-Disposition: form-data; name=\"<name>\"`
 public struct NetworkMultipartFormDataRequest {
+    /// Nombre usado en la key "name" de la cabecera "Content-Disposition"
     public let name: String
+    
+    /// Valor de la solicitud
     public let value: Data
+    
+    /// Parámetros adicionales de la cabecera "Content-Disposition"
     public let additionalContentDispositionParameters: [NetworkMultipartFormParameterConvertible]?
+    
+    /// Cabeceras adicionales
     public let additionalHeaders: [NetworkMultipartFormHeaderConvertible]?
     
+    /// Inicializador de la solicitud
+    /// - Parameters:
+    ///  - name: Nombre usado en el parámetro "name" de la cabecera "Content-Disposition"
+    ///  - value: Valor de la solicitud
+    ///  - additionalContentDispositionParameters: Parámetros adicionales de la cabecera "Content-Disposition"
+    ///  - additionalHeaders: Cabeceras adicionales
     public init(name: String,
                 value: Data,
                 additionalContentDispositionParameters: [NetworkMultipartFormParameterConvertible]? = nil,
