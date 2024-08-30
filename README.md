@@ -336,9 +336,15 @@ func getFilms(searchText: String, page: Int) async throws -> Data {
 
 La clase `NetworkRequest` tiene varios inicializadores y permiten las configuraciones más comunes que suelen tener un `URLRequest`. Internamente la clase `NetworkRequest` implementa el protocolo `URLRequestConvertible`, que es el requisito para poder transformarlo en un `URLRequest`.
 
-Los parámetros de la query se pueden pasar como un tipo `NetworkQuery`. El valor de estos parámetros no debe estar codificado para el envio en la url. La propia librería se encarga de codificarlo
+Los parámetros de la query se pueden pasar como un tipo `NetworkQuery`. El valor de estos parámetros no debe estar codificado para el envio en la url. La propia librería se encarga de codificarlo.
 
-Más ejemplos:
+La clase `NetworkRequest` es extensible y se puede heredar para complementarlo en base a las necesidades del proyecto.
+
+También es posible crearse un componente totalmente personalizado que implemente el protocolo `URLRequestConvertible` para poder usarlo en las peticiones.
+
+#### Soporte JSON
+
+La librería permite enviar parámetros en json fácilmente. Para ello debemos tener una estructura de datos que implemente el protocolo `Encodable` y pasarselo en el parámetro `jsonBody`. Esto hará que el body de la petición sea el json de dicha estructura.
 
 ``` swift
 let networkSession: NetworkSession = AppURLSession(session: URLSession(configuration: configuration, delegate: nil, delegateQueue: nil))
@@ -357,9 +363,35 @@ func getFilms(searchText: String, page: Int) async throws -> Data {
 }
 ```
 
-La clase `NetworkRequest` es extensible y se puede heredar para complementarlo en base a las necesidades del proyecto.
+Al utilizar estas funciones se incluye automáticamente la cabecera `Content-Type: application/json` a la request.
 
-También es posible crearse un componente totalmente personalizado que implemente el protocolo `URLRequestConvertible` para poder usarlo en las peticiones.
+#### Soporte Multipart Form
+
+La clase `NetworkRequest` puede crear request para soportar llamadas de tipo `multipart/form-data`. Estas peticiones tienen una estructura del body específica y la librería permite crearla fácilmente usando el parámetro `multipartForm` del inicializador.
+
+``` swift
+let networkSession: NetworkSession = AppURLSession(session: URLSession(configuration: configuration, delegate: nil, delegateQueue: nil))
+
+func uploadImage(image: Data) async throws -> Data {
+    let networkRequest = try NetworkRequest(
+        url: "https://endpoint.com/upload/image",
+        httpMethod: .post,
+        headers: nil,
+        query: nil,
+        multipartForm: NetworkMultipartFormFileRequest(name: "image", filename: "profile.png", value: image, contentType: "application/png"))
+    
+    let result = try await networkSession.requestUpload(for: networkRequest)
+    return result.data
+}
+```
+
+El parámetro `multipartForm` recibe un array de `NetworkMultipartFormDataConvertible`. La librería tiene 3 estructuras que implementan este protocolo:
+- `NetworkMultipartFormJsonRequest`: Se usa cuando se quiera enviar un json
+- `NetworkMultipartFormFileRequest`: Se usa cuando se queira enviar un fichero
+- `NetworkMultipartFormDataRequest`: Se usa cuando se quiera enviar un tipo de dato no contemplado en los otros casos
+
+Esa implementación puede ser extendida creando nuestra propia implementación del protocolo `NetworkMultipartFormDataConvertible`.
+
 
 ---
 

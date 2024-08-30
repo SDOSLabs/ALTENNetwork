@@ -109,8 +109,7 @@ open class NetworkRequest {
     ///  - httpMethod: método http de la petición
     ///  - headers: cabeceras de la petición
     ///  - query: parámetros de tipo query de la petición
-    ///  - multipartForm: parámetros de tipo `NetworkMultipartFormDataConvertible` que serán añadidos al body de
-    ///  la petición
+    ///  - multipartForm: parámetros de tipo `NetworkMultipartFormDataConvertible` que serán añadidos al body de la petición
     public convenience init(url: String,
                             httpMethod: NetworkHttpMethod,
                             headers: [NetworkHeader]? = nil,
@@ -125,8 +124,7 @@ open class NetworkRequest {
     ///  - httpMethod: método http de la petición
     ///  - headers: cabeceras de la petición
     ///  - query: parámetros de tipo query de la petición
-    ///  - multipartForm: parámetros de tipo `NetworkMultipartFormDataConvertible` que serán añadidos al body de
-    ///  la petición
+    ///  - multipartForm: parámetros de tipo `NetworkMultipartFormDataConvertible` que serán añadidos al body de la petición
     public convenience init(url: URL,
                             httpMethod: NetworkHttpMethod,
                             headers: [NetworkHeader]? = nil,

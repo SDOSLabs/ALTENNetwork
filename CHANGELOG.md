@@ -9,7 +9,24 @@ final class AppURLSession: NetworkSession {
         self.session = session
     }
 }
-````
+```
+- Add support for multipart form data requests. You can use `NetworkMultipartFormFileRequest`, `NetworkMultipartFormDataRequest` and `NetworkMultipartFormJsonRequest` for create the request.
+
+``` swift
+let networkSession: NetworkSession = AppURLSession(session: URLSession(configuration: configuration, delegate: nil, delegateQueue: nil))
+
+func uploadImage(image: Data) async throws -> Data {
+    let networkRequest = try NetworkRequest(
+        url: "https://endpoint.com/upload/image",
+        httpMethod: .post,
+        headers: nil,
+        query: nil,
+        multipartForm: NetworkMultipartFormFileRequest(name: "image", filename: "profile.png", value: Data(), contentType: "application/png"))
+    
+    let result = try await networkSession.requestUpload(for: networkRequest)
+    return result.data
+}
+```
 
 With this class you can call any web services:
 
