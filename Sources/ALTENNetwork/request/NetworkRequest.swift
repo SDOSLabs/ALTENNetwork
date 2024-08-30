@@ -103,6 +103,54 @@ open class NetworkRequest {
         try self.init(url: url, httpMethod: httpMethod, headers: headers, query: query, jsonBody: jsonBody)
     }
     
+    /// Crea un `NetworkRequest` a partir de unos parámetros. Este inicializador añade la cabecera `Content-Type: multipart/form-data` automáticamente a la petición
+    ///  - Parameters:
+    ///  - url: url de la petición
+    ///  - httpMethod: método http de la petición
+    ///  - headers: cabeceras de la petición
+    ///  - query: parámetros de tipo query de la petición
+    ///  - multipartForm: parámetros de tipo `NetworkMultipartFormDataConvertible` que serán añadidos al body de
+    ///  la petición
+    public convenience init(url: String,
+                            httpMethod: NetworkHttpMethod,
+                            headers: [NetworkHeader]? = nil,
+                            query: [NetworkQuery]? = nil,
+                            multipartForm: [NetworkMultipartFormDataConvertible]) throws {
+        guard let url = URL(string: url) else { throw NetworkError.request(.invalidURL) }
+        try self.init(url: url, httpMethod: httpMethod, headers: headers, query: query, multipartForm: multipartForm)
+    }
+    /// Crea un `NetworkRequest` a partir de unos parámetros. Este inicializador añade la cabecera `Content-Type: multipart/form-data` automáticamente a la petición
+    /// - Parameters:
+    ///  - url: url de la petición
+    ///  - httpMethod: método http de la petición
+    ///  - headers: cabeceras de la petición
+    ///  - query: parámetros de tipo query de la petición
+    ///  - multipartForm: parámetros de tipo `NetworkMultipartFormDataConvertible` que serán añadidos al body de
+    ///  la petición
+    public convenience init(url: URL,
+                            httpMethod: NetworkHttpMethod,
+                            headers: [NetworkHeader]? = nil,
+                            query: [NetworkQuery]? = nil,
+                            multipartForm: [NetworkMultipartFormDataConvertible]) throws {
+        var httpBodyData: Data = Data()
+        let boundary = "Boundary-\(UUID().uuidString)"
+        if !multipartForm.isEmpty {
+            httpBodyData.append(
+                try multipartForm.reduce(into: Data()) { (result, item) in
+                    do {
+                        let data = try item.data(boundary: boundary)
+                        result.append(data)
+                    } catch {
+                        throw NetworkError.request(.encodeError(error))
+                    }
+                }
+            )
+            httpBodyData.append("--\(boundary)--\r\n".data(using: .utf8) ?? Data())
+        }
+        
+        try self.init(url: url, httpMethod: httpMethod, headers: [NetworkHeader(key: "Content-Type", value: "multipart/form-data; boundary=\(boundary)")] + (headers ?? []), query: query, httpBody: httpBodyData)
+    }
+    
     /// Crea un `NetworkRequest` a partir de un `URLRequest`
     /// - Parameter urlRequest: `URLRequest` con la petición
     public init(urlRequest: URLRequest) {
