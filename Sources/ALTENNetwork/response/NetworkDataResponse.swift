@@ -7,7 +7,7 @@
 import Foundation
 
 /// Tipo de dato que normaliza las respuestas de una petición con `NetworkSession`
-public struct NetworkDataResponse {
+public struct NetworkDataResponse: Sendable {
     /// Datos devueltos por la petición
     public let data: Data
     /// Response de la petición

@@ -7,6 +7,13 @@
 import SystemConfiguration
 import Foundation
 
+@globalActor
+public struct NetworkActor: GlobalActor {
+    public actor ActorType { }
+
+    public static let shared: ActorType = ActorType()
+}
+
 /**
  Permite la suscripción a un `AsyncThrowingStream<NetworkReachability, Error>` que notificará de los cambios de red que se produzcan en el dispositivo.
  
@@ -48,6 +55,7 @@ import Foundation
  La creación del objeto `let notifier = try? reachability.startNotifier()` se debe realizar en una nueva `Task`, ya que a la hora de realizar el `for-await-in` la `Task` se quedará en ejecución y no terminará hasta que finalizemos el loop manualmente o a través de la liberación de memoria.
  
  */
+@NetworkActor
 public final class NetworkReachability {
 
     public enum Connection: String {
@@ -72,7 +80,7 @@ public final class NetworkReachability {
         }
     }
     
-    private var reachabilityHandler: ((NetworkReachability?) -> ())?
+    private var reachabilityHandler: (@Sendable (NetworkReachability?) -> ())?
 
     fileprivate var isRunningOnDevice: Bool = {
         #if targetEnvironment(simulator)
@@ -129,10 +137,6 @@ public final class NetworkReachability {
 
         self.init(reachabilityRef: ref, queueQoS: queueQoS, targetQueue: targetQueue, notificationQueue: notificationQueue)
     }
-
-    deinit {
-        stopNotifier()
-    }
 }
 
 extension NetworkReachability {
@@ -142,9 +146,12 @@ extension NetworkReachability {
     /// - Returns: Stream con el tipo de red al que está conectado
     public func startNotifier() throws -> AsyncThrowingStream<NetworkReachability, Error> {
         guard !notifierRunning else { throw NetworkError.Reachability.alreadyRunning }
+        let stopNotifier = stopNotifier
         let reachability = AsyncThrowingStream(NetworkReachability.self) { [weak self] continuation in
             continuation.onTermination = { @Sendable _ in
-//                self?.stopNotifier()
+                Task {
+                    await stopNotifier()
+                }
             }
             self?.reachabilityHandler = { reachability in
                 if let reachability = reachability {
@@ -255,16 +262,22 @@ fileprivate extension NetworkReachability {
             self.flags = flags
         }
     }
-    
 
     func notifyReachabilityChanged() {
-        let notify = { [weak self] in
-            guard let self = self else { return }
-            self.reachabilityHandler?(self)
+        let reachabilityHandler = self.reachabilityHandler
+        let instance = self
+        let notify = { @Sendable in
+            reachabilityHandler?(instance)
         }
 
         // notify on the configured `notificationQueue`, or the caller's (i.e. `reachabilitySerialQueue`)
-        notificationQueue?.async(execute: notify) ?? notify()
+        if let notificationQueue {
+            notificationQueue.async {
+                notify()
+            }
+        } else {
+            notify()
+        }
     }
 }
 

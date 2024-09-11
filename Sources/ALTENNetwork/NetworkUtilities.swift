@@ -56,7 +56,7 @@ public struct NetworkQuery {
 }
 
 /// Tipos de métodos http de las peticiones
-public struct NetworkHttpMethod: RawRepresentable {
+public struct NetworkHttpMethod: RawRepresentable, Sendable {
     public let rawValue: String
     
     public static let get = NetworkHttpMethod(rawValue: "GET")

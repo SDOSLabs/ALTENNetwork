@@ -7,7 +7,7 @@
 import Foundation
 
 /// Tipo de dato que normaliza las respuestas de una petición de subida con `NetworkSession`
-public struct NetworkUploadResponse {
+public struct NetworkUploadResponse: Sendable {
     /// Datos devueltos por la petición
     public let data: Data
     /// Response de la petición
@@ -17,7 +17,7 @@ public struct NetworkUploadResponse {
     /// Tipo de subida de la petición
     public let uploadType: UploadType
     
-    public enum UploadType {
+    public enum UploadType: Sendable {
         case data(Data)
         case file(URL)
     }
