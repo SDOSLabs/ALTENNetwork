@@ -19,6 +19,13 @@ public enum NetworkSessionInterception {
     case upload(NetworkUploadResponse)
 }
 
+@globalActor
+public struct NetworkSessionActor: GlobalActor {
+    public actor ActorType { }
+
+    public static let shared: ActorType = ActorType()
+}
+
 /// Contiene todos los métodos disponibles para realizar llamadas con async/await
 public protocol NetworkSession: Actor {
     

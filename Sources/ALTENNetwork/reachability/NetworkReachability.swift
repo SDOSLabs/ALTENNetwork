@@ -8,7 +8,7 @@ import SystemConfiguration
 import Foundation
 
 @globalActor
-public struct NetworkActor: GlobalActor {
+public struct NetworkReachabilityActor: GlobalActor {
     public actor ActorType { }
 
     public static let shared: ActorType = ActorType()
@@ -55,7 +55,7 @@ public struct NetworkActor: GlobalActor {
  La creación del objeto `let notifier = try? reachability.startNotifier()` se debe realizar en una nueva `Task`, ya que a la hora de realizar el `for-await-in` la `Task` se quedará en ejecución y no terminará hasta que finalizemos el loop manualmente o a través de la liberación de memoria.
  
  */
-@NetworkActor
+@NetworkReachabilityActor
 public final class NetworkReachability {
 
     public enum Connection: String {
