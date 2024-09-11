@@ -45,14 +45,14 @@ public protocol NetworkSession {
     ///  - originalRequest: `URLRequest` original a la que se está llamando
     ///  - retryNumber: Número de intentos que se han realizado para la petición. El primer intento es 0.
     ///  - Returns: `NetworkSessionInterceptionResult` que indica si se debe continuar con el flujo o si se debe reintentar la petición con una nueva `URLRequest`
-    func interceptResponse(networkSession: any NetworkSession, originalRequest: URLRequest, retryNumber: Int, result: Result<NetworkSessionInterception, Error>) async throws -> NetworkSessionInterceptionResult
+    func interceptResponse(networkSession: NetworkSession, originalRequest: URLRequest, retryNumber: Int, result: Result<NetworkSessionInterception, Error>) async throws -> NetworkSessionInterceptionResult
     
     /// Este método se llamará antes de que comience cualquier request. Tiene como parámetro de entrada la URLRequest a la que se está llamando y su único objetivo es que sirva de caracter informativo.
     /// La implementación por defecto imprime el curl de la request sólo en entornos de debug a través de la condificón `#if DEBUG`
     /// - Parameters:
     /// - networkSession: `NetworkSession` que realiza la petición
     /// - originalRequest: `URLRequest` original a la que se está llamando
-    func requestStart(networkSession: any NetworkSession, originalRequest: URLRequest) async
+    func requestStart(networkSession: NetworkSession, originalRequest: URLRequest) async
     
     // Descarga el contenido de un `URLRequestConvertible` y lo almacena en memoria. `URLRequestConvertible` es en esencia un `URLRequest`. De forma básica podemos usar un `URL` o un `URLRequest` para realizar la petición
     /// - Parameters:
@@ -178,13 +178,13 @@ public protocol NetworkSession {
 
 extension NetworkSession {
     
-    public func requestStart(networkSession: any NetworkSession, originalRequest: URLRequest) {
+    public func requestStart(networkSession: NetworkSession, originalRequest: URLRequest) {
 #if DEBUG
         print("[NetworkSession] - Start Request: \(originalRequest.curl)")
 #endif
     }
     
-    public func interceptResponse(networkSession: any NetworkSession, originalRequest: URLRequest, retryNumber: Int, result: Result<NetworkSessionInterception, Error>) async throws -> NetworkSessionInterceptionResult {
+    public func interceptResponse(networkSession: NetworkSession, originalRequest: URLRequest, retryNumber: Int, result: Result<NetworkSessionInterception, Error>) async throws -> NetworkSessionInterceptionResult {
 #if DEBUG
         switch result {
         case .success(.data(let response)):
