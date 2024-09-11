@@ -34,7 +34,7 @@ public struct NetworkMultipartFormJsonRequest<T: Encodable> {
     /// - additionalHeaders: Cabeceras adicionales
     public init(name: String,
                 value: T,
-                encoder: JSONEncoder = JSONEncoder(),
+                encoder: JSONEncoder = JSONEncoder(outputFormatting: .sortedKeys),
                 additionalContentDispositionParameters: [NetworkMultipartFormParameterConvertible]? = nil,
                 additionalHeaders: [NetworkMultipartFormHeaderConvertible]? = nil) {
         self.name = name

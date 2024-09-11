@@ -73,7 +73,7 @@ open class NetworkRequest {
                                           headers: [NetworkHeader]? = nil,
                                           query: [NetworkQuery]? = nil,
                                           jsonBody: T? = nil,
-                                          encoder: JSONEncoder = JSONEncoder()) throws {
+                                          encoder: JSONEncoder = JSONEncoder(outputFormatting: .sortedKeys)) throws {
         var httpBodyData: Data?
         if let jsonBody = jsonBody {
             do {
@@ -98,7 +98,7 @@ open class NetworkRequest {
                                           headers: [NetworkHeader]? = nil,
                                           query: [NetworkQuery]? = nil,
                                           jsonBody: T? = nil,
-                                          encoder: JSONEncoder = JSONEncoder()) throws {
+                                          encoder: JSONEncoder = JSONEncoder(outputFormatting: .sortedKeys)) throws {
         guard let url = URL(string: url) else { throw NetworkError.request(.invalidURL) }
         try self.init(url: url, httpMethod: httpMethod, headers: headers, query: query, jsonBody: jsonBody)
     }

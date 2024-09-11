@@ -193,7 +193,7 @@ final class ALTENNetworkTests: XCTestCase {
     func testMultipartFormJson() throws {
         do {
             let json = ["name": "Hola probando texto"]
-            let jsonEncode = JSONEncoder()
+            let jsonEncode = JSONEncoder(outputFormatting: .sortedKeys)
             let request = NetworkMultipartFormJsonRequest(name: "clave", value: json)
             let boundary = "boundary"
             var expectedData = "--boundary\r\nContent-Disposition: form-data; name=\"clave\"\r\n".data(using: .utf8)
@@ -208,7 +208,7 @@ final class ALTENNetworkTests: XCTestCase {
                 let creationDate: String
             }
             let json = Test(name: "Prueba de parámetro 2", creationDate: "2024-01-01")
-            let jsonEncode = JSONEncoder()
+            let jsonEncode = JSONEncoder(outputFormatting: .sortedKeys)
             jsonEncode.keyEncodingStrategy = .convertToSnakeCase
             let request = NetworkMultipartFormJsonRequest(name: "clave", value: json, encoder: jsonEncode, additionalContentDispositionParameters: [NetworkMultipartFormParameter(key: "date", value: "2024-01-01")])
             let boundary = "boundary"
@@ -220,7 +220,7 @@ final class ALTENNetworkTests: XCTestCase {
         
         do {
             let json = ["name": "Prueba 3", "creationDate": "2024/01/01", "email": "prueba@alten.es"]
-            let jsonEncode = JSONEncoder()
+            let jsonEncode = JSONEncoder(outputFormatting: .sortedKeys)
             let request = NetworkMultipartFormJsonRequest(name: "clave", value: json, additionalContentDispositionParameters: [NetworkMultipartFormParameter(key: "date", value: "2024/01/01"), NetworkMultipartFormParameter(key: "email", value: "prueba@alten.es")])
             let boundary = "boundary"
             var expectedData = "--boundary\r\nContent-Disposition: form-data; name=\"clave\"; date=\"2024/01/01\"; email=\"prueba@alten.es\"\r\n".data(using: .utf8)
@@ -231,7 +231,7 @@ final class ALTENNetworkTests: XCTestCase {
         
         do {
             let json = ["name": "Prueba 4"]
-            let jsonEncode = JSONEncoder()
+            let jsonEncode = JSONEncoder(outputFormatting: .sortedKeys)
             let request = NetworkMultipartFormJsonRequest(name: "clave", value: json, additionalHeaders: [NetworkMultipartFormHeader(key: "Content-Transfer-Encoding", value: "binary")])
             let boundary = "boundary"
             var expectedData = "--boundary\r\nContent-Disposition: form-data; name=\"clave\"\r\n".data(using: .utf8)
@@ -243,7 +243,7 @@ final class ALTENNetworkTests: XCTestCase {
         
         do {
             let json = ["name": "Prueba 5"]
-            let jsonEncode = JSONEncoder()
+            let jsonEncode = JSONEncoder(outputFormatting: .sortedKeys)
             let request = NetworkMultipartFormJsonRequest(name: "clave", value: json, additionalHeaders: [NetworkMultipartFormHeader(key: "Content-Transfer-Encoding", value: "binary"), NetworkMultipartFormHeader(key: "Creation-Date", value: "1999-01-01")])
             let boundary = "boundary"
             var expectedData = "--boundary\r\nContent-Disposition: form-data; name=\"clave\"\r\n".data(using: .utf8)
@@ -256,7 +256,7 @@ final class ALTENNetworkTests: XCTestCase {
         
         do {
             let json = ["name": "Prueba 6"]
-            let jsonEncode = JSONEncoder()
+            let jsonEncode = JSONEncoder(outputFormatting: .sortedKeys)
             let request = NetworkMultipartFormJsonRequest(
                 name: "clave",
                 value: json,
