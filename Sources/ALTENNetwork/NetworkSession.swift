@@ -27,14 +27,14 @@ public struct NetworkSessionActor: GlobalActor {
 }
 
 /// Contiene todos los métodos disponibles para realizar llamadas con async/await
-public protocol NetworkSession: GlobalActor {
+public protocol NetworkSession {
     
     /// Inicializador de la clase
     /// - Parameter session: `URLSession` que se encargará de realizar
     init(session: URLSession)
     
     /// `URLSession` que se encarga de realizar las peticiones
-    var session: URLSession { get set }
+    var session: URLSession { get async }
     
     /// Este método se llamará cuando se finalice cualquier request. Tiene como parámetro de entrada el `NetworkSession` que realiza la petición y la `URLRequest` original a la que se está llamando.
     /// Este método permite interceptar la respuesta antes de continuar con el flujo, pudiendo forzar el reintento de la petición con una nueva `URLRequest`
@@ -52,7 +52,7 @@ public protocol NetworkSession: GlobalActor {
     /// - Parameters:
     /// - networkSession: `NetworkSession` que realiza la petición
     /// - originalRequest: `URLRequest` original a la que se está llamando
-    func requestStart(networkSession: any NetworkSession, originalRequest: URLRequest)
+    func requestStart(networkSession: any NetworkSession, originalRequest: URLRequest) async
     
     // Descarga el contenido de un `URLRequestConvertible` y lo almacena en memoria. `URLRequestConvertible` es en esencia un `URLRequest`. De forma básica podemos usar un `URL` o un `URLRequest` para realizar la petición
     /// - Parameters:
@@ -177,6 +177,7 @@ public protocol NetworkSession: GlobalActor {
 }
 
 extension NetworkSession {
+    
     public func requestStart(networkSession: any NetworkSession, originalRequest: URLRequest) {
 #if DEBUG
         print("[NetworkSession] - Start Request: \(originalRequest.curl)")
@@ -224,12 +225,13 @@ extension NetworkSession {
     private func _requestData(for request: URLRequestConvertible, delegate: URLSessionTaskDelegate?, retryNumber: Int = 0) async throws -> NetworkDataResponse {
         let originalRequest = request.asURLRequest()
         let urlRequest = request.asURLRequest()
-        requestStart(networkSession: self, originalRequest: urlRequest)
+        await requestStart(networkSession: self, originalRequest: urlRequest)
         do {
             let response: NetworkDataResponse
             if #available(iOS 15, tvOS 15, *) {
                 response = try await NetworkDataResponse(dataResponse: session.data(for: urlRequest, delegate: delegate), originalRequest: originalRequest)
             } else {
+                let session = await session
                 response = try await withCheckedThrowingContinuation { continuation in
                     let dataTask = session.dataTask(with: urlRequest) { data, response, error in
                         do {
@@ -301,12 +303,13 @@ extension NetworkSession {
     private func _requestDownload(for request: URLRequestConvertible, delegate: URLSessionTaskDelegate?, retryNumber: Int = 0) async throws -> NetworkDownloadResponse {
         let originalRequest = request.asURLRequest()
         let urlRequest = request.asURLRequest()
-        requestStart(networkSession: self, originalRequest: urlRequest)
+        await requestStart(networkSession: self, originalRequest: urlRequest)
         do {
             let response: NetworkDownloadResponse
             if #available(iOS 15, tvOS 15, *) {
                 response = try await NetworkDownloadResponse(dataResponse: session.download(for: urlRequest, delegate: delegate), originalRequest: originalRequest)
             } else {
+                let session = await session
                 response = try await withCheckedThrowingContinuation { continuation in
                     let dataTask = session.downloadTask(with: urlRequest) { url, response, error in
                         do {
@@ -379,12 +382,13 @@ extension NetworkSession {
     private func _requestUpload(for request: URLRequestConvertible, from bodyData: Data, delegate: URLSessionTaskDelegate?, retryNumber: Int = 0) async throws -> NetworkUploadResponse {
         let originalRequest = request.asURLRequest()
         let urlRequest = request.asURLRequest()
-        requestStart(networkSession: self, originalRequest: urlRequest)
+        await requestStart(networkSession: self, originalRequest: urlRequest)
         do {
             let response: NetworkUploadResponse
             if #available(iOS 15, tvOS 15, *) {
                 response = try await NetworkUploadResponse(dataResponse: session.upload(for: urlRequest, from: bodyData, delegate: delegate), originalRequest: originalRequest, uploadType: .data(bodyData))
             } else {
+                let session = await session
                 response = try await withCheckedThrowingContinuation { continuation in
                     let dataTask = session.uploadTask(with: urlRequest, from: bodyData) { data, response, error in
                         do {
@@ -456,12 +460,13 @@ extension NetworkSession {
     private func _requestUpload(for request: URLRequestConvertible, fromFile fileURL: URL, delegate: URLSessionTaskDelegate?, retryNumber: Int = 0) async throws -> NetworkUploadResponse {
         let originalRequest = request.asURLRequest()
         let urlRequest = request.asURLRequest()
-        requestStart(networkSession: self, originalRequest: urlRequest)
+        await requestStart(networkSession: self, originalRequest: urlRequest)
         do {
             let response: NetworkUploadResponse
             if #available(iOS 15, tvOS 15, *) {
                 response = try await NetworkUploadResponse(dataResponse: session.upload(for: urlRequest, fromFile: fileURL, delegate: delegate), originalRequest: originalRequest, uploadType: .file(fileURL))
             } else {
+                let session = await session
                 response = try await withCheckedThrowingContinuation { continuation in
                     let dataTask = session.uploadTask(with: urlRequest, fromFile: fileURL) { data, response, error in
                         do {
