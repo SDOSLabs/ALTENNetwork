@@ -19,22 +19,19 @@ public enum NetworkSessionInterception {
     case upload(NetworkUploadResponse)
 }
 
-@globalActor
-public struct NetworkSessionActor: GlobalActor {
-    public actor ActorType { }
-
-    public static let shared: ActorType = ActorType()
+@globalActor actor NetworkSessionActor {
+    static var shared = NetworkSessionActor()
 }
 
 /// Contiene todos los métodos disponibles para realizar llamadas con async/await
-public protocol NetworkSession {
+public protocol NetworkSession: Actor {
     
     /// Inicializador de la clase
     /// - Parameter session: `URLSession` que se encargará de realizar
     init(session: URLSession)
     
     /// `URLSession` que se encarga de realizar las peticiones
-    var session: URLSession { get async }
+    var session: URLSession { get }
     
     /// Este método se llamará cuando se finalice cualquier request. Tiene como parámetro de entrada el `NetworkSession` que realiza la petición y la `URLRequest` original a la que se está llamando.
     /// Este método permite interceptar la respuesta antes de continuar con el flujo, pudiendo forzar el reintento de la petición con una nueva `URLRequest`
