@@ -20,7 +20,7 @@ public enum NetworkSessionInterception {
 }
 
 /// Contiene todos los métodos disponibles para realizar llamadas con async/await
-public protocol NetworkSession {
+public protocol NetworkSession: Actor {
     
     /// Inicializador de la clase
     /// - Parameter session: `URLSession` que se encargará de realizar
