@@ -29,6 +29,7 @@ final class ALTENNetworkTests: XCTestCase {
             let request = NetworkMultipartFormDataRequest(name: "clave", value: data)
             let boundary = "boundary"
             var expectedData = "--boundary\r\nContent-Disposition: form-data; name=\"clave\"\r\n".data(using: .utf8)
+            expectedData?.append("\r\n".data(using: .utf8) ?? Data())
             expectedData?.append(text.data(using: .utf8) ?? Data())
             expectedData?.append("\r\n".data(using: .utf8) ?? Data())
             XCTAssertEqual(try request.data(boundary: boundary), expectedData)
@@ -41,6 +42,7 @@ final class ALTENNetworkTests: XCTestCase {
             let request = NetworkMultipartFormDataRequest(name: key, value: data, additionalContentDispositionParameters: [NetworkMultipartFormParameter(key: "date", value: "2024-01-01")])
             let boundary = "boundary"
             var expectedData = "--boundary\r\nContent-Disposition: form-data; name=\"\(key)\"; date=\"2024-01-01\"\r\n".data(using: .utf8)
+            expectedData?.append("\r\n".data(using: .utf8) ?? Data())
             expectedData?.append(text.data(using: .utf8) ?? Data())
             expectedData?.append("\r\n".data(using: .utf8) ?? Data())
             XCTAssertEqual(try request.data(boundary: boundary), expectedData)
@@ -53,6 +55,7 @@ final class ALTENNetworkTests: XCTestCase {
             let request = NetworkMultipartFormDataRequest(name: key, value: data, additionalContentDispositionParameters: [NetworkMultipartFormParameter(key: "date", value: "2024/01/01"), NetworkMultipartFormParameter(key: "email", value: "prueba@alten.es")])
             let boundary = "boundary"
             var expectedData = "--boundary\r\nContent-Disposition: form-data; name=\"\(key)\"; date=\"2024/01/01\"; email=\"prueba@alten.es\"\r\n".data(using: .utf8)
+            expectedData?.append("\r\n".data(using: .utf8) ?? Data())
             expectedData?.append(text.data(using: .utf8) ?? Data())
             expectedData?.append("\r\n".data(using: .utf8) ?? Data())
             XCTAssertEqual(try request.data(boundary: boundary), expectedData)
@@ -66,6 +69,7 @@ final class ALTENNetworkTests: XCTestCase {
             let boundary = "boundary"
             var expectedData = "--boundary\r\nContent-Disposition: form-data; name=\"\(key)\"\r\n".data(using: .utf8)
             expectedData?.append("Content-Transfer-Encoding: binary\r\n".data(using: .utf8) ?? Data())
+            expectedData?.append("\r\n".data(using: .utf8) ?? Data())
             expectedData?.append(text.data(using: .utf8) ?? Data())
             expectedData?.append("\r\n".data(using: .utf8) ?? Data())
             XCTAssertEqual(try request.data(boundary: boundary), expectedData)
@@ -80,6 +84,7 @@ final class ALTENNetworkTests: XCTestCase {
             var expectedData = "--boundary\r\nContent-Disposition: form-data; name=\"\(key)\"\r\n".data(using: .utf8)
             expectedData?.append("Content-Transfer-Encoding: binary\r\n".data(using: .utf8) ?? Data())
             expectedData?.append("Creation-Date: 1999-01-01\r\n".data(using: .utf8) ?? Data())
+            expectedData?.append("\r\n".data(using: .utf8) ?? Data())
             expectedData?.append(text.data(using: .utf8) ?? Data())
             expectedData?.append("\r\n".data(using: .utf8) ?? Data())
             XCTAssertEqual(try request.data(boundary: boundary), expectedData)
@@ -99,6 +104,7 @@ final class ALTENNetworkTests: XCTestCase {
             var expectedData = "--boundary\r\nContent-Disposition: form-data; name=\"\(key)\"; time=\"22:24\"; updated=\"true\"\r\n".data(using: .utf8)
             expectedData?.append("Content-Encoding: base64\r\n".data(using: .utf8) ?? Data())
             expectedData?.append("Creation: 2000-02-02\r\n".data(using: .utf8) ?? Data())
+            expectedData?.append("\r\n".data(using: .utf8) ?? Data())
             expectedData?.append(text.data(using: .utf8) ?? Data())
             expectedData?.append("\r\n".data(using: .utf8) ?? Data())
             XCTAssertEqual(try request.data(boundary: boundary), expectedData)
@@ -112,6 +118,7 @@ final class ALTENNetworkTests: XCTestCase {
             let request = NetworkMultipartFormFileRequest(name: "clave", filename: "archivo.txt", value: data, contentType: "text/plain")
             let boundary = "boundary"
             var expectedData = "--boundary\r\nContent-Disposition: form-data; name=\"clave\"; filename=\"archivo.txt\"\r\nContent-Type: text/plain\r\n".data(using: .utf8)
+            expectedData?.append("\r\n".data(using: .utf8) ?? Data())
             expectedData?.append(text.data(using: .utf8) ?? Data())
             expectedData?.append("\r\n".data(using: .utf8) ?? Data())
             XCTAssertEqual(try request.data(boundary: boundary), expectedData)
@@ -124,6 +131,7 @@ final class ALTENNetworkTests: XCTestCase {
             let request = NetworkMultipartFormFileRequest(name: key, filename: "archivo.txt", value: data, contentType: "text/plain", additionalContentDispositionParameters: [NetworkMultipartFormParameter(key: "date", value: "2024-01-01")])
             let boundary = "boundary"
             var expectedData = "--boundary\r\nContent-Disposition: form-data; name=\"\(key)\"; filename=\"archivo.txt\"; date=\"2024-01-01\"\r\nContent-Type: text/plain\r\n".data(using: .utf8)
+            expectedData?.append("\r\n".data(using: .utf8) ?? Data())
             expectedData?.append(text.data(using: .utf8) ?? Data())
             expectedData?.append("\r\n".data(using: .utf8) ?? Data())
             XCTAssertEqual(try request.data(boundary: boundary), expectedData)
@@ -136,6 +144,7 @@ final class ALTENNetworkTests: XCTestCase {
             let request = NetworkMultipartFormFileRequest(name: key, filename: "archivo.png", value: data, contentType: "text/plain", additionalContentDispositionParameters: [NetworkMultipartFormParameter(key: "date", value: "2024/01/01"), NetworkMultipartFormParameter(key: "email", value: "prueba@alten.es")])
             let boundary = "boundary"
             var expectedData = "--boundary\r\nContent-Disposition: form-data; name=\"\(key)\"; filename=\"archivo.png\"; date=\"2024/01/01\"; email=\"prueba@alten.es\"\r\nContent-Type: text/plain\r\n".data(using: .utf8)
+            expectedData?.append("\r\n".data(using: .utf8) ?? Data())
             expectedData?.append(text.data(using: .utf8) ?? Data())
             expectedData?.append("\r\n".data(using: .utf8) ?? Data())
             XCTAssertEqual(try request.data(boundary: boundary), expectedData)
@@ -149,6 +158,7 @@ final class ALTENNetworkTests: XCTestCase {
             let boundary = "boundary"
             var expectedData = "--boundary\r\nContent-Disposition: form-data; name=\"\(key)\"; filename=\"archivo.txt\"\r\nContent-Type: text/plain\r\n".data(using: .utf8)
             expectedData?.append("Content-Transfer-Encoding: binary\r\n".data(using: .utf8) ?? Data())
+            expectedData?.append("\r\n".data(using: .utf8) ?? Data())
             expectedData?.append(text.data(using: .utf8) ?? Data())
             expectedData?.append("\r\n".data(using: .utf8) ?? Data())
             XCTAssertEqual(try request.data(boundary: boundary), expectedData)
@@ -163,6 +173,7 @@ final class ALTENNetworkTests: XCTestCase {
             var expectedData = "--boundary\r\nContent-Disposition: form-data; name=\"\(key)\"; filename=\"archivo.txt\"\r\nContent-Type: text/plain\r\n".data(using: .utf8)
             expectedData?.append("Content-Transfer-Encoding: binary\r\n".data(using: .utf8) ?? Data())
             expectedData?.append("Creation-Date: 1999-01-01\r\n".data(using: .utf8) ?? Data())
+            expectedData?.append("\r\n".data(using: .utf8) ?? Data())
             expectedData?.append(text.data(using: .utf8) ?? Data())
             expectedData?.append("\r\n".data(using: .utf8) ?? Data())
             XCTAssertEqual(try request.data(boundary: boundary), expectedData)
@@ -184,6 +195,7 @@ final class ALTENNetworkTests: XCTestCase {
             var expectedData = "--boundary\r\nContent-Disposition: form-data; name=\"\(key)\"; filename=\"archivo.txt\"; time=\"22:24\"; updated=\"true\"\r\nContent-Type: text/plain\r\n".data(using: .utf8)
             expectedData?.append("Content-Encoding: base64\r\n".data(using: .utf8) ?? Data())
             expectedData?.append("Creation: 2000-02-02\r\n".data(using: .utf8) ?? Data())
+            expectedData?.append("\r\n".data(using: .utf8) ?? Data())
             expectedData?.append(text.data(using: .utf8) ?? Data())
             expectedData?.append("\r\n".data(using: .utf8) ?? Data())
             XCTAssertEqual(try request.data(boundary: boundary), expectedData)
@@ -197,6 +209,7 @@ final class ALTENNetworkTests: XCTestCase {
             let request = NetworkMultipartFormJsonRequest(name: "clave", value: json)
             let boundary = "boundary"
             var expectedData = "--boundary\r\nContent-Disposition: form-data; name=\"clave\"\r\n".data(using: .utf8)
+            expectedData?.append("\r\n".data(using: .utf8) ?? Data())
             expectedData?.append(try jsonEncode.encode(json))
             expectedData?.append("\r\n".data(using: .utf8) ?? Data())
             XCTAssertEqual(try request.data(boundary: boundary), expectedData)
@@ -213,6 +226,7 @@ final class ALTENNetworkTests: XCTestCase {
             let request = NetworkMultipartFormJsonRequest(name: "clave", value: json, encoder: jsonEncode, additionalContentDispositionParameters: [NetworkMultipartFormParameter(key: "date", value: "2024-01-01")])
             let boundary = "boundary"
             var expectedData = "--boundary\r\nContent-Disposition: form-data; name=\"clave\"; date=\"2024-01-01\"\r\n".data(using: .utf8)
+            expectedData?.append("\r\n".data(using: .utf8) ?? Data())
             expectedData?.append(try jsonEncode.encode(json))
             expectedData?.append("\r\n".data(using: .utf8) ?? Data())
             XCTAssertEqual(try request.data(boundary: boundary), expectedData)
@@ -224,6 +238,7 @@ final class ALTENNetworkTests: XCTestCase {
             let request = NetworkMultipartFormJsonRequest(name: "clave", value: json, additionalContentDispositionParameters: [NetworkMultipartFormParameter(key: "date", value: "2024/01/01"), NetworkMultipartFormParameter(key: "email", value: "prueba@alten.es")])
             let boundary = "boundary"
             var expectedData = "--boundary\r\nContent-Disposition: form-data; name=\"clave\"; date=\"2024/01/01\"; email=\"prueba@alten.es\"\r\n".data(using: .utf8)
+            expectedData?.append("\r\n".data(using: .utf8) ?? Data())
             expectedData?.append(try jsonEncode.encode(json))
             expectedData?.append("\r\n".data(using: .utf8) ?? Data())
             XCTAssertEqual(try request.data(boundary: boundary), expectedData)
@@ -236,6 +251,7 @@ final class ALTENNetworkTests: XCTestCase {
             let boundary = "boundary"
             var expectedData = "--boundary\r\nContent-Disposition: form-data; name=\"clave\"\r\n".data(using: .utf8)
             expectedData?.append("Content-Transfer-Encoding: binary\r\n".data(using: .utf8) ?? Data())
+            expectedData?.append("\r\n".data(using: .utf8) ?? Data())
             expectedData?.append(try jsonEncode.encode(json))
             expectedData?.append("\r\n".data(using: .utf8) ?? Data())
             XCTAssertEqual(try request.data(boundary: boundary), expectedData)
@@ -249,6 +265,7 @@ final class ALTENNetworkTests: XCTestCase {
             var expectedData = "--boundary\r\nContent-Disposition: form-data; name=\"clave\"\r\n".data(using: .utf8)
             expectedData?.append("Content-Transfer-Encoding: binary\r\n".data(using: .utf8) ?? Data())
             expectedData?.append("Creation-Date: 1999-01-01\r\n".data(using: .utf8) ?? Data())
+            expectedData?.append("\r\n".data(using: .utf8) ?? Data())
             expectedData?.append(try jsonEncode.encode(json))
             expectedData?.append("\r\n".data(using: .utf8) ?? Data())
             XCTAssertEqual(try request.data(boundary: boundary), expectedData)
@@ -267,6 +284,7 @@ final class ALTENNetworkTests: XCTestCase {
             var expectedData = "--boundary\r\nContent-Disposition: form-data; name=\"clave\"; time=\"22:24\"; updated=\"true\"\r\n".data(using: .utf8)
             expectedData?.append("Content-Encoding: base64\r\n".data(using: .utf8) ?? Data())
             expectedData?.append("Creation: 2000-02-02\r\n".data(using: .utf8) ?? Data())
+            expectedData?.append("\r\n".data(using: .utf8) ?? Data())
             expectedData?.append(try jsonEncode.encode(json))
             expectedData?.append("\r\n".data(using: .utf8) ?? Data())
             XCTAssertEqual(try request.data(boundary: boundary), expectedData)

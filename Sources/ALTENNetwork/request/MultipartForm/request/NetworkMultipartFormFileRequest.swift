@@ -75,6 +75,7 @@ extension NetworkMultipartFormFileRequest: NetworkMultipartFormDataConvertible {
         var data = Data()
         data.append("--\(boundary)\r\n".data(using: .utf8) ?? Data())
         data.append(generateHeaders().data(using: .utf8) ?? Data())
+        data.append("\r\n".data(using: .utf8) ?? Data())
         data.append(value)
         data.append("\r\n".data(using: .utf8) ?? Data())
         return data
