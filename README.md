@@ -72,19 +72,6 @@ func doRequest() async throws -> Data {
 }
 ````
 
-
-> Truco: La función `requestStart(networkSession: NetworkSession, originalRequest: URLRequest)` de `NetworkSession` existe por motivos de depuración. Al imprimir por consola datos de la request original podemos exponer datos sensibles, por lo que se recomienda usar un logger o una condición para mostrar esta información sólo en debug.
-
-``` swift 
-extension AppURLSession {
-    func requestStart(networkSession: NetworkSession, originalRequest: URLRequest) {
-        #if DEBUG
-        print(originalRequest.curl)
-        #endif
-    }
-}
-``` 
-
 La definición del protocolo `NetworkSession` es la siguiente:
 
 
@@ -110,12 +97,13 @@ public protocol NetworkSession {
     ///  - Returns: `NetworkSessionInterceptionResult` que indica si se debe continuar con el flujo o si se debe reintentar la petición con una nueva `URLRequest`
     func interceptResponse(networkSession: NetworkSession, originalRequest: URLRequest, retryNumber: Int, result: Result<NetworkSessionInterception, Error>) async throws -> NetworkSessionInterceptionResult
     
-    /// Este método se llamará antes de que comience cualquier request. Tiene como parámetro de entrada la URLRequest a la que se está llamando y su único objetivo es que sirva de caracter informativo.
+    /// Este método se llamará antes de que comience cualquier request. Tiene como parámetro de entrada la URLRequest a la que se está llamando. Este método tiene como objetivo modificar la Request antes de que se realice la petición.
     /// La implementación por defecto imprime el curl de la request sólo en entornos de debug a través de la condificón `#if DEBUG`
     /// - Parameters:
     /// - networkSession: `NetworkSession` que realiza la petición
     /// - originalRequest: `URLRequest` original a la que se está llamando
-    func requestStart(networkSession: NetworkSession, originalRequest: URLRequest)
+    /// - Returns: `URLRequest` que se debe realizar
+    func interceptRequest(networkSession: NetworkSession, originalRequest: URLRequest) async -> URLRequestConvertible
     
     // Descarga el contenido de un `URLRequestConvertible` y lo almacena en memoria. `URLRequestConvertible` es en esencia un `URLRequest`. De forma básica podemos usar un `URL` o un `URLRequest` para realizar la petición
     /// - Parameters:
@@ -254,6 +242,33 @@ func doRequest() async throws -> Data {
 }
 ```
 ---
+
+### Interceptar request de una petición
+
+Pordemos usar la función `interceptRequest` para interceptar la petición antes de realizarla y modificarla. Por ejemplo, podemos usarlo para añadir cabeceras a la petición.
+
+``` swift 
+extension AppURLSession {
+    func requestStart(networkSession: NetworkSession, originalRequest: URLRequest) {
+        var request = originalRequest
+        request.addValue("Token", forHTTPHeaderField: "Authorization")
+        return request
+    }
+}
+``` 
+
+También podemos usar esta función para imprimir por consola la respuesta de la petición.
+
+``` swift
+extension AppURLSession {
+    func requestStart(networkSession: NetworkSession, originalRequest: URLRequest) {
+        #if DEBUG
+        print("[NetworkSession] - Start Request: \(originalRequest.curl)")
+        #endif
+        return originalRequest  
+    }
+}
+```
 
 ### Interceptar respuesta de una petición
 

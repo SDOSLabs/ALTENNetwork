@@ -75,6 +75,18 @@ extension AppURLSession {
 
 - Add support to Swift 6 strict concurrency
 
+- Remove `requestStart` in `NetworkSession`. Now you can use `interceptRequest` for modify the request before send it.
+
+``` swift 
+extension AppURLSession {
+    func requestStart(networkSession: NetworkSession, originalRequest: URLRequest) {
+        var request = originalRequest
+        request.addValue("Token", forHTTPHeaderField: "Authorization")
+        return request
+    }
+}
+``` 
+
 ## [3.0.1](https://github.com/SDOSLabs/ALTENNetwork/tree/3.0.1)
 - Incluido fichero `PrivacyInfo.xcprivacy` requerido por Apple: https://developer.apple.com/documentation/bundleresources/privacy_manifest_files/describing_use_of_required_reason_api
 
