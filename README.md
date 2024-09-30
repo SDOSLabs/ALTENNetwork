@@ -5,8 +5,11 @@
     - [Como dependencia en Package.swift](#como-dependencia-en-packageswift)
   - [Cómo se usa](#cómo-se-usa)
     - [Hacer una petición](#hacer-una-petición)
+    - [Interceptar request de una petición](#interceptar-request-de-una-petición)
     - [Interceptar respuesta de una petición](#interceptar-respuesta-de-una-petición)
     - [Crear un `NetworkRequest`](#crear-un-networkrequest)
+      - [Soporte JSON](#soporte-json)
+      - [Soporte Multipart Form](#soporte-multipart-form)
     - [`NetworkDataResponse`, `NetworkDownloadResponse` y `NetworkUploadResponse`](#networkdataresponse-networkdownloadresponse-y-networkuploadresponse)
     - [Control de conexión con `NetworkReachability`](#control-de-conexión-con-networkreachability)
 
@@ -245,11 +248,11 @@ func doRequest() async throws -> Data {
 
 ### Interceptar request de una petición
 
-Pordemos usar la función `interceptRequest` para interceptar la petición antes de realizarla y modificarla. Por ejemplo, podemos usarlo para añadir cabeceras a la petición.
+Podemos usar la función `interceptRequest` para interceptar la petición antes de realizarla y modificarla. Por ejemplo, podemos usarlo para añadir cabeceras a la petición.
 
 ``` swift 
 extension AppURLSession {
-    func requestStart(networkSession: NetworkSession, originalRequest: URLRequest) {
+    func interceptRequest(networkSession: NetworkSession, originalRequest: URLRequest) async -> URLRequestConvertible {
         var request = originalRequest
         request.addValue("Token", forHTTPHeaderField: "Authorization")
         return request
@@ -261,7 +264,7 @@ También podemos usar esta función para imprimir por consola la respuesta de la
 
 ``` swift
 extension AppURLSession {
-    func requestStart(networkSession: NetworkSession, originalRequest: URLRequest) {
+    func interceptRequest(networkSession: NetworkSession, originalRequest: URLRequest) async -> URLRequestConvertible {
         #if DEBUG
         print("[NetworkSession] - Start Request: \(originalRequest.curl)")
         #endif

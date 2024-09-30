@@ -79,7 +79,7 @@ extension AppURLSession {
 
 ``` swift 
 extension AppURLSession {
-    func requestStart(networkSession: NetworkSession, originalRequest: URLRequest) {
+    func interceptRequest(networkSession: NetworkSession, originalRequest: URLRequest) async -> URLRequestConvertible {}
         var request = originalRequest
         request.addValue("Token", forHTTPHeaderField: "Authorization")
         return request
