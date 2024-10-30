@@ -52,7 +52,7 @@ La librería usa el protocolo `NetworkSession` como core de su funcionalidad, qu
 Para usar la librería hay que crear una clase que implemente el protocolo `NetworkSession`. Por defecto, sólo es necesario pasarle la `URLSession` que se usará para hacer las llamadas a servicios.
 
 ``` swift
-final class AppURLSession: NetworkSession {
+final actor AppURLSession: NetworkSession {
     var session: URLSession
     
     init(session: URLSession) {

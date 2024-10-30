@@ -168,7 +168,7 @@ public protocol NetworkSession: Actor {
 
 extension NetworkSession {
     
-    public func interceptRequest(networkSession: NetworkSession, originalRequest: URLRequest) async -> URLRequest {
+    public func interceptRequest(networkSession: NetworkSession, originalRequest: URLRequest) async -> URLRequestConvertible {
 #if DEBUG
         print("[NetworkSession] - Start Request: \(originalRequest.curl)")
 #endif

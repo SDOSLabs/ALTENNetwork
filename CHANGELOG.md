@@ -1,8 +1,12 @@
+## [4.0.1](https://github.com/SDOSLabs/ALTENNetwork/tree/4.0.1)
+
+- Fix documentation and default implementation of `interceptRequest` in `NetworkSession` protocol.
+
 ## [4.0.0](https://github.com/SDOSLabs/ALTENNetwork/tree/4.0.0)
 - Change protocol `NetworkSession`. Now it's not recommended extend `URLSession` with `NetworkSession`. Instead create your own class and implement `NetworkSession`.
 
 ``` swift
-final class AppURLSession: NetworkSession {
+final actor AppURLSession: NetworkSession {
     var session: URLSession
     
     init(session: URLSession) {
