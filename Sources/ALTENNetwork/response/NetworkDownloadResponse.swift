@@ -6,8 +6,8 @@
 
 import Foundation
 
-/// Tipo de dato que normaliza las respuestas de una petición de descarga con `URLSession`
-public struct NetworkDownloadResponse {
+/// Tipo de dato que normaliza las respuestas de una petición de descarga con `NetworkSession`
+public struct NetworkDownloadResponse: Sendable {
     /// Ruta del fichero descargado a través de la petición
     public let url: URL
     /// Response de la petición

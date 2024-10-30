@@ -1,3 +1,92 @@
+## [4.0.0](https://github.com/SDOSLabs/ALTENNetwork/tree/4.0.0)
+- Change protocol `NetworkSession`. Now it's not recommended extend `URLSession` with `NetworkSession`. Instead create your own class and implement `NetworkSession`.
+
+``` swift
+final class AppURLSession: NetworkSession {
+    var session: URLSession
+    
+    init(session: URLSession) {
+        self.session = session
+    }
+}
+```
+- Add support for multipart form data requests. You can use `NetworkMultipartFormFileRequest`, `NetworkMultipartFormDataRequest` and `NetworkMultipartFormJsonRequest` for create the request.
+
+``` swift
+let networkSession: NetworkSession = AppURLSession(session: URLSession(configuration: configuration, delegate: nil, delegateQueue: nil))
+
+func uploadImage(image: Data) async throws -> Data {
+    let networkRequest = try NetworkRequest(
+        url: "https://endpoint.com/upload/image",
+        httpMethod: .post,
+        headers: nil,
+        query: nil,
+        multipartForm: NetworkMultipartFormFileRequest(name: "image", filename: "profile.png", value: Data(), contentType: "application/png"))
+    
+    let result = try await networkSession.requestUpload(for: networkRequest)
+    return result.data
+}
+```
+
+With this class you can call any web services:
+
+``` swift
+let networkSession: NetworkSession = AppURLSession(session: URLSession(configuration: configuration, delegate: nil, delegateQueue: nil))
+
+func doRequest() async throws -> Data {
+    let url = "https://alten.es"
+    let result = try await networkSession.requestData(for: url)
+    return result.data
+}
+````
+
+- Add new function `interceptResponse` in `NetworkSession` protocol. This function allows to intercept the response before continue the process in the library. You can use this function for example to refresh the token when the response is 401.
+
+``` swift
+extension AppURLSession {
+    func interceptResponse(networkSession: NetworkSession, originalRequest: URLRequest, retryNumber: Int, result: Result<NetworkSessionInterception, Error>) async throws -> NetworkSessionInterceptionResult {
+        guard retryNumber < 1 else { return .nothing }
+        
+        var httpURLRespone: HTTPURLResponse? = nil
+        switch result {
+        case .success(.data(let dataResponse)):
+            if let _httpURLRespone = dataResponse.response as? HTTPURLResponse {
+                httpURLRespone = _httpURLRespone
+            }
+        case .success(.download(let dataResponse)):
+            if let _httpURLRespone = dataResponse.response as? HTTPURLResponse {
+                httpURLRespone = _httpURLRespone
+            }
+        case .success(.upload(let dataResponse)):
+            if let _httpURLRespone = dataResponse.response as? HTTPURLResponse {
+                httpURLRespone = _httpURLRespone
+            }
+        case .failure(let error):
+            throw error
+        }
+        if let httpURLRespone, httpURLRespone.statusCode == 401 {
+            let newRequest = try await refreshToken() // Implement refresh and return a new request with others authentication headers
+            return .retry(newRequest)
+        }
+        return .nothing
+    }
+}
+``` 
+
+- Add support to Swift 6 strict concurrency
+
+- Remove `requestStart` in `NetworkSession`. Now you can use `interceptRequest` for modify the request before send it.
+
+``` swift 
+extension AppURLSession {
+    func interceptRequest(networkSession: NetworkSession, originalRequest: URLRequest) async -> URLRequestConvertible {}
+        var request = originalRequest
+        request.addValue("Token", forHTTPHeaderField: "Authorization")
+        return request
+    }
+}
+``` 
+
 ## [3.0.1](https://github.com/SDOSLabs/ALTENNetwork/tree/3.0.1)
 - Incluido fichero `PrivacyInfo.xcprivacy` requerido por Apple: https://developer.apple.com/documentation/bundleresources/privacy_manifest_files/describing_use_of_required_reason_api
 
