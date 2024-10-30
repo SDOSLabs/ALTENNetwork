@@ -14,6 +14,8 @@ public enum NetworkError: Error {
     case responseData(DataResponse)
     /// Error producido durante el tratamiento de la respuesta de peticiones de tipo download
     case responseDownload(DownloadResponse)
+    /// Error producido durante el tratamiento de la respuesta de peticiones de tipo upload
+    case responseUpload(UploadResponse)
     /// Error desconocido
     case unknown
 }
@@ -41,12 +43,24 @@ extension NetworkError {
 }
 
 extension NetworkError {
+    /// Tipo de error producido en el tratamiento de los datos de respuesta de una petición
+    public enum UploadResponse: Error {
+        /// Error que indica que el `URLResponse` no es válido
+        case invalidResponse(NetworkUploadResponse)
+        /// Error que indica que el `statusCode` del `HTTPURLResponse` no es válido
+        case invalidStatusCode(NetworkUploadResponse, Int)
+    }
+}
+
+extension NetworkError {
     /// Tipo de error producido durante la creación de la petición
     public enum Request: Error {
         /// Error que indica que la url de la petición no tiene un formato correcto
         case invalidURL
         /// Error que indica que no puede transformar el objeto `Encodable` a `json`
         case encodeError(Error)
+        /// Error que indica que no puede transformar el `String` a `Data`
+        case stringEncodingError
     }
 }
 

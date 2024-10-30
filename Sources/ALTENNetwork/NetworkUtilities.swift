@@ -56,7 +56,7 @@ public struct NetworkQuery {
 }
 
 /// Tipos de métodos http de las peticiones
-public struct NetworkHttpMethod: RawRepresentable {
+public struct NetworkHttpMethod: RawRepresentable, Sendable {
     public let rawValue: String
     
     public static let get = NetworkHttpMethod(rawValue: "GET")
@@ -73,5 +73,13 @@ public struct NetworkHttpMethod: RawRepresentable {
     
     public init(rawValue: String) {
         self.rawValue = rawValue
+    }
+}
+
+internal func jsonDecode<T: Decodable>(_ type: T.Type, data: Data, decoder: JSONDecoder = JSONDecoder()) throws -> T {
+    do {
+        return try decoder.decode(T.self, from: data)
+    } catch {
+        throw NetworkError.responseData(.decodeError(error))
     }
 }
