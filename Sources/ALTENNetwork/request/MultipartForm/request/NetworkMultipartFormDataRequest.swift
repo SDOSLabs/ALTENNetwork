@@ -55,12 +55,17 @@ public struct NetworkMultipartFormDataRequest {
 
 extension NetworkMultipartFormDataRequest: NetworkMultipartFormDataConvertible {
     public func data(boundary: String) throws -> Data {
+        guard let boundaryData = "--\(boundary)\r\n".data(using: .utf8),
+              let headersData = generateHeaders().data(using: .utf8),
+              let newLineData = "\r\n".data(using: .utf8) else {
+            throw NetworkError.request(.stringEncodingError)
+        }
         var data = Data()
-        data.append("--\(boundary)\r\n".data(using: .utf8) ?? Data())
-        data.append(generateHeaders().data(using: .utf8) ?? Data())
-        data.append("\r\n".data(using: .utf8) ?? Data())
+        data.append(boundaryData)
+        data.append(headersData)
+        data.append(newLineData)
         data.append(value)
-        data.append("\r\n".data(using: .utf8) ?? Data())
+        data.append(newLineData)
         return data
     }
 }

@@ -59,7 +59,7 @@ final class AppURLSession: NetworkSession {
         self.session = session
     }
 }
-````
+```
 
 Todos los demás métodos del protocolo están implementados y no es necesario hacer nada más para usarla, pero se pueden sobrescribir si fuera necesario.
 
@@ -73,7 +73,7 @@ func doRequest() async throws -> Data {
     let result = try await networkSession.requestData(for: url)
     return result.data
 }
-````
+```
 
 La definición del protocolo `NetworkSession` es la siguiente:
 

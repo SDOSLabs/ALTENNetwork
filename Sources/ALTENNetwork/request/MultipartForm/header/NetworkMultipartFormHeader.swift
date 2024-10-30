@@ -41,7 +41,7 @@ public struct NetworkMultipartFormHeader: NetworkMultipartFormHeaderConvertible 
     ///
     ///    El resultado sería:
     /// ```
-    /// Content-Disposition: form-data; name="file"; filename="file.png"
+    /// Content-Disposition: form-data; name="file"; filename="file.png"\r\n
     /// ```
     /// 
     ///

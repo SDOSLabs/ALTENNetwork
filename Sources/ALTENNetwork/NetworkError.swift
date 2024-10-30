@@ -59,6 +59,8 @@ extension NetworkError {
         case invalidURL
         /// Error que indica que no puede transformar el objeto `Encodable` a `json`
         case encodeError(Error)
+        /// Error que indica que no puede transformar el `String` a `Data`
+        case stringEncodingError
     }
 }
 

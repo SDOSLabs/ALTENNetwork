@@ -132,6 +132,9 @@ open class NetworkRequest {
                             multipartForm: [NetworkMultipartFormDataConvertible]) throws {
         var httpBodyData: Data = Data()
         let boundary = "Boundary-\(UUID().uuidString)"
+        guard let boundaryData = "--\(boundary)\r\n".data(using: .utf8) else {
+            throw NetworkError.request(.stringEncodingError)
+        }
         if !multipartForm.isEmpty {
             httpBodyData.append(
                 try multipartForm.reduce(into: Data()) { (result, item) in
@@ -143,7 +146,7 @@ open class NetworkRequest {
                     }
                 }
             )
-            httpBodyData.append("--\(boundary)--\r\n".data(using: .utf8) ?? Data())
+            httpBodyData.append(boundaryData)
         }
         
         try self.init(url: url, httpMethod: httpMethod, headers: [NetworkHeader(key: "Content-Type", value: "multipart/form-data; boundary=\(boundary)")] + (headers ?? []), query: query, httpBody: httpBodyData)
