@@ -100,7 +100,7 @@ open class NetworkRequest {
                                           jsonBody: T? = nil,
                                           encoder: JSONEncoder = JSONEncoder(outputFormatting: .sortedKeys)) throws {
         guard let url = URL(string: url) else { throw NetworkError.request(.invalidURL) }
-        try self.init(url: url, httpMethod: httpMethod, headers: headers, query: query, jsonBody: jsonBody)
+        try self.init(url: url, httpMethod: httpMethod, headers: headers, query: query, jsonBody: jsonBody, encoder: encoder)
     }
     
     /// Crea un `NetworkRequest` a partir de unos parámetros. Este inicializador añade la cabecera `Content-Type: multipart/form-data` automáticamente a la petición
