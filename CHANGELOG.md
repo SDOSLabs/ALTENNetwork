@@ -1,3 +1,7 @@
+## [4.0.2](https://github.com/SDOSLabs/ALTENNetwork/tree/4.0.2)
+
+- Fix JsonEncoder use (bug)
+
 ## [4.0.1](https://github.com/SDOSLabs/ALTENNetwork/tree/4.0.1)
 
 - Fix documentation and default implementation of `interceptRequest` in `NetworkSession` protocol.
