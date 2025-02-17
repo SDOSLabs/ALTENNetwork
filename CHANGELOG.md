@@ -1,3 +1,7 @@
+## [4.1.0](https://github.com/SDOSLabs/ALTENNetwork/tree/4.1.0)
+
+- Add timeoutInterval to NetworkRequest
+
 ## [4.0.2](https://github.com/SDOSLabs/ALTENNetwork/tree/4.0.2)
 
 - Fix JsonEncoder use (bug)

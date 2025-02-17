@@ -20,7 +20,8 @@ open class NetworkRequest {
                 httpMethod: NetworkHttpMethod = .get,
                 headers: [NetworkHeader]? = nil,
                 query: [NetworkQuery]? = nil,
-                httpBody: Data? = nil) throws {
+                httpBody: Data? = nil,
+                timeoutInterval: TimeInterval? = nil) throws {
         
         guard var components = URLComponents(string: url.absoluteString) else { throw NetworkError.request(.invalidURL) }
         if let query = query {
@@ -40,6 +41,9 @@ open class NetworkRequest {
         urlRequest.httpMethod = httpMethod.rawValue
         urlRequest.allHTTPHeaderFields = headers?.reduce(into: [:], { (result, item) in result[item.key] = item.value })
         urlRequest.httpBody = httpBody
+        if let timeoutInterval {
+            urlRequest.timeoutInterval = timeoutInterval
+        }
         
         self.urlRequest = urlRequest
     }
@@ -55,9 +59,10 @@ open class NetworkRequest {
                             httpMethod: NetworkHttpMethod = .get,
                             headers: [NetworkHeader]? = nil,
                             query: [NetworkQuery]? = nil,
-                            httpBody: Data? = nil) throws {
+                            httpBody: Data? = nil,
+                            timeoutInterval: TimeInterval? = nil) throws {
         guard let url = URL(string: url) else { throw NetworkError.request(.invalidURL) }
-        try self.init(url: url, httpMethod: httpMethod, headers: headers, query: query, httpBody: httpBody)
+        try self.init(url: url, httpMethod: httpMethod, headers: headers, query: query, httpBody: httpBody, timeoutInterval: timeoutInterval)
     }
     
     /// Crea un `NetworkRequest` a partir de unos parámetros. Este inicializador añade la cabecera `Content-Type: application/json` automáticamente a la petición
@@ -73,7 +78,8 @@ open class NetworkRequest {
                                           headers: [NetworkHeader]? = nil,
                                           query: [NetworkQuery]? = nil,
                                           jsonBody: T? = nil,
-                                          encoder: JSONEncoder = JSONEncoder(outputFormatting: .sortedKeys)) throws {
+                                          encoder: JSONEncoder = JSONEncoder(outputFormatting: .sortedKeys),
+                                          timeoutInterval: TimeInterval? = nil) throws {
         var httpBodyData: Data?
         if let jsonBody = jsonBody {
             do {
@@ -82,7 +88,7 @@ open class NetworkRequest {
                 throw NetworkError.request(.encodeError(error))
             }
         }
-        try self.init(url: url, httpMethod: httpMethod, headers: [NetworkHeader(key: "Content-Type", value: "application/json")] + (headers ?? []), query: query, httpBody: httpBodyData)
+        try self.init(url: url, httpMethod: httpMethod, headers: [NetworkHeader(key: "Content-Type", value: "application/json")] + (headers ?? []), query: query, httpBody: httpBodyData, timeoutInterval: timeoutInterval)
     }
     
     /// Crea un `NetworkRequest` a partir de unos parámetros. Este inicializador añade la cabecera `Content-Type: application/json` automáticamente a la petición
@@ -98,9 +104,10 @@ open class NetworkRequest {
                                           headers: [NetworkHeader]? = nil,
                                           query: [NetworkQuery]? = nil,
                                           jsonBody: T? = nil,
-                                          encoder: JSONEncoder = JSONEncoder(outputFormatting: .sortedKeys)) throws {
+                                          encoder: JSONEncoder = JSONEncoder(outputFormatting: .sortedKeys),
+                                          timeoutInterval: TimeInterval? = nil) throws {
         guard let url = URL(string: url) else { throw NetworkError.request(.invalidURL) }
-        try self.init(url: url, httpMethod: httpMethod, headers: headers, query: query, jsonBody: jsonBody, encoder: encoder)
+        try self.init(url: url, httpMethod: httpMethod, headers: headers, query: query, jsonBody: jsonBody, encoder: encoder, timeoutInterval: timeoutInterval)
     }
     
     /// Crea un `NetworkRequest` a partir de unos parámetros. Este inicializador añade la cabecera `Content-Type: multipart/form-data` automáticamente a la petición
@@ -114,9 +121,10 @@ open class NetworkRequest {
                             httpMethod: NetworkHttpMethod,
                             headers: [NetworkHeader]? = nil,
                             query: [NetworkQuery]? = nil,
-                            multipartForm: [NetworkMultipartFormDataConvertible]) throws {
+                            multipartForm: [NetworkMultipartFormDataConvertible],
+                            timeoutInterval: TimeInterval? = nil) throws {
         guard let url = URL(string: url) else { throw NetworkError.request(.invalidURL) }
-        try self.init(url: url, httpMethod: httpMethod, headers: headers, query: query, multipartForm: multipartForm)
+        try self.init(url: url, httpMethod: httpMethod, headers: headers, query: query, multipartForm: multipartForm, timeoutInterval: timeoutInterval)
     }
     /// Crea un `NetworkRequest` a partir de unos parámetros. Este inicializador añade la cabecera `Content-Type: multipart/form-data` automáticamente a la petición
     /// - Parameters:
@@ -129,7 +137,8 @@ open class NetworkRequest {
                             httpMethod: NetworkHttpMethod,
                             headers: [NetworkHeader]? = nil,
                             query: [NetworkQuery]? = nil,
-                            multipartForm: [NetworkMultipartFormDataConvertible]) throws {
+                            multipartForm: [NetworkMultipartFormDataConvertible],
+                            timeoutInterval: TimeInterval? = nil) throws {
         var httpBodyData: Data = Data()
         let boundary = "Boundary-\(UUID().uuidString)"
         guard let boundaryData = "--\(boundary)\r\n".data(using: .utf8) else {
@@ -149,7 +158,7 @@ open class NetworkRequest {
             httpBodyData.append(boundaryData)
         }
         
-        try self.init(url: url, httpMethod: httpMethod, headers: [NetworkHeader(key: "Content-Type", value: "multipart/form-data; boundary=\(boundary)")] + (headers ?? []), query: query, httpBody: httpBodyData)
+        try self.init(url: url, httpMethod: httpMethod, headers: [NetworkHeader(key: "Content-Type", value: "multipart/form-data; boundary=\(boundary)")] + (headers ?? []), query: query, httpBody: httpBodyData, timeoutInterval: timeoutInterval)
     }
     
     /// Crea un `NetworkRequest` a partir de un `URLRequest`
